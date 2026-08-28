@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Payment, TokenSymbol } from '@/types/payment';
+import { Payment } from '@/types/payment';
 import { ClockIcon, CheckCircleIcon, CancelIcon, LockIcon, ArrowUpRightIcon } from './Icons';
 
 interface PaymentCardProps {

@@ -16,9 +16,6 @@ export default function DashboardPage() {
     return p.status === filter;
   });
 
-  // Limit to active/pending payments for the quick dashboard view
-  const activePayments = payments.filter(p => p.status === 'active' || p.status === 'pending');
-
   return (
     <div className="space-y-8">
       {/* Title & Introduction */}

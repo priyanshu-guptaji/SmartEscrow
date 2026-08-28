@@ -1,20 +1,21 @@
 'use client';
 
 import React from 'react';
-import { EscrowProvider, useEscrow } from '@/context/EscrowContext';
+import { EscrowProvider } from '@/context/EscrowContext';
 import Sidebar from '@/components/Sidebar';
 import WalletWidget from '@/components/WalletWidget';
+import { useAccount } from 'wagmi';
 
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
-  const { walletConnected, metrics, toggleWallet, walletBalance } = useEscrow();
+  const { isConnected, address } = useAccount();
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#070a13] font-sans text-slate-100">
       {/* Left Sidebar */}
       <Sidebar
-        walletConnected={walletConnected}
-        connectedWallet={metrics.connectedWallet}
-        toggleWallet={toggleWallet}
+        walletConnected={isConnected}
+        connectedWallet={address ?? null}
+        toggleWallet={() => {}} // handled by WalletWidget
       />
 
       {/* Right Content Area */}
@@ -27,13 +28,8 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
             </span>
           </div>
 
-          {/* Connected wallet button widget */}
-          <WalletWidget
-            connected={walletConnected}
-            address={metrics.connectedWallet}
-            balance={walletBalance}
-            onToggleConnect={toggleWallet}
-          />
+          {/* Live wallet widget (self-contained, uses Wagmi internally) */}
+          <WalletWidget />
         </header>
 
         {/* Dashboard Main Content Panel */}

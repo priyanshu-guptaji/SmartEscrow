@@ -26,13 +26,23 @@ export default function Sidebar({ walletConnected, connectedWallet, toggleWallet
       icon: <PlusIcon size={18} />,
     },
     {
-      name: 'Payment History',
-      href: '/dashboard/payment-history',
+      name: 'Payments',
+      href: '/dashboard/payments',
+      icon: <LockIcon size={18} />,
+    },
+    {
+      name: 'History',
+      href: '/dashboard/history',
       icon: <HistoryIcon size={18} />,
     },
   ];
 
   const secondaryLinks = [
+    {
+      name: 'Profile',
+      href: '/dashboard/profile',
+      icon: <WalletIcon size={18} />,
+    },
     {
       name: 'Landing Page',
       href: '/',

@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import HeroSection from '@/components/HeroSection';
 import FeatureCards from '@/components/FeatureCards';
-import { ArrowRightIcon, LockIcon, SparklesIcon, ShieldCheckIcon, WalletIcon } from '@/components/Icons';
+import { LockIcon, SparklesIcon, ShieldCheckIcon, WalletIcon } from '@/components/Icons';
 
 export default function LandingPage() {
   return (

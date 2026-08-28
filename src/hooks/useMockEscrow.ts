@@ -1,40 +1,32 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Payment, DashboardMetrics, TokenSymbol } from '@/types/payment';
+import { useState } from 'react';
+import { Payment, DashboardMetrics } from '@/types/payment';
 import { MOCK_PAYMENTS, TOKEN_PRICES, MOCK_WALLET_BALANCE, MOCK_CONNECTED_WALLET } from '@/lib/mockData';
 
+function getInitialPayments(): Payment[] {
+  if (typeof window === 'undefined') return MOCK_PAYMENTS;
+  const stored = localStorage.getItem('smartescrow_payments');
+  return stored ? JSON.parse(stored) : MOCK_PAYMENTS;
+}
+
+function getInitialConnected(): boolean {
+  if (typeof window === 'undefined') return true;
+  const stored = localStorage.getItem('smartescrow_wallet_connected');
+  return stored !== null ? stored === 'true' : true;
+}
+
+function getInitialBalance() {
+  if (typeof window === 'undefined') return MOCK_WALLET_BALANCE;
+  const stored = localStorage.getItem('smartescrow_wallet_balance');
+  return stored ? JSON.parse(stored) : MOCK_WALLET_BALANCE;
+}
+
 export function useMockEscrow() {
-  const [payments, setPayments] = useState<Payment[]>([]);
-  const [walletConnected, setWalletConnected] = useState<boolean>(true);
-  const [walletBalance, setWalletBalance] = useState(MOCK_WALLET_BALANCE);
-  const [isInitialized, setIsInitialized] = useState<boolean>(false);
-
-  // Hydrate state from localStorage on mount (client-side only)
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedPayments = localStorage.getItem('smartescrow_payments');
-      const storedConnected = localStorage.getItem('smartescrow_wallet_connected');
-      const storedBalance = localStorage.getItem('smartescrow_wallet_balance');
-
-      if (storedPayments) {
-        setPayments(JSON.parse(storedPayments));
-      } else {
-        setPayments(MOCK_PAYMENTS);
-        localStorage.setItem('smartescrow_payments', JSON.stringify(MOCK_PAYMENTS));
-      }
-
-      if (storedConnected !== null) {
-        setWalletConnected(storedConnected === 'true');
-      }
-
-      if (storedBalance) {
-        setWalletBalance(JSON.parse(storedBalance));
-      }
-
-      setIsInitialized(true);
-    }
-  }, []);
+  const [payments, setPayments] = useState<Payment[]>(getInitialPayments);
+  const [walletConnected, setWalletConnected] = useState<boolean>(getInitialConnected);
+  const [walletBalance, setWalletBalance] = useState(getInitialBalance);
+  const [isInitialized] = useState<boolean>(typeof window !== 'undefined');
 
   // Sync state helper
   const savePayments = (newPayments: Payment[]) => {

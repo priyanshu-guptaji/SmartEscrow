@@ -17,10 +17,16 @@ export interface Payment {
   releaseDate?: string;
   description?: string;
   naturalLanguagePrompt?: string;
+  contractEscrowId?: number;
+  txHash?: string;
+  fundedTxHash?: string;
+  releasedTxHash?: string;
+  refundedTxHash?: string;
+  duration?: number;
 }
 
 export interface DashboardMetrics {
-  totalPaymentsVolume: number; // in USD equivalent (mocked)
+  totalPaymentsVolume: number;
   activeEscrowsCount: number;
   completedTransactionsCount: number;
   walletBalance: {
@@ -28,3 +34,29 @@ export interface DashboardMetrics {
   };
   connectedWallet: string | null;
 }
+
+export type TxState =
+  | 'idle'
+  | 'preparing'
+  | 'wallet-pending'
+  | 'confirming'
+  | 'confirmed'
+  | 'failed';
+
+export interface ContractEscrow {
+  id: bigint;
+  sender: `0x${string}`;
+  receiver: `0x${string}`;
+  token: `0x${string}`;
+  amount: bigint;
+  condition: string;
+  deadline: bigint;
+  status: number;
+}
+
+export const ESCROW_STATUS_MAP: Record<number, 'Active' | 'Completed' | 'Refunded'> = {
+  0: 'Active',
+  1: 'Completed',
+  2: 'Refunded',
+};
+

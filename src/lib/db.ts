@@ -1,0 +1,164 @@
+import fs from 'fs';
+import path from 'path';
+import mongoose from 'mongoose';
+import { Payment, PaymentStatus } from '@/types/payment';
+
+const MONGODB_URI = process.env.MONGODB_URI;
+
+// Define local JSON database path
+const LOCAL_DB_DIR = path.join(process.cwd(), 'src', 'scratch');
+const LOCAL_DB_PATH = path.join(LOCAL_DB_DIR, 'db.json');
+
+// Mongoose schema (only compiled if MONGODB_URI is provided)
+let PaymentModel: mongoose.Model<Payment> | null = null;
+
+if (MONGODB_URI) {
+  const paymentSchema = new mongoose.Schema({
+    id: { type: String, required: true, unique: true },
+    receiverName: { type: String, required: true },
+    receiverAddress: { type: String, required: true },
+    amount: { type: Number, required: true },
+    token: { type: String, required: true },
+    type: { type: String, required: true },
+    status: { type: String, required: true },
+    condition: { type: String, required: true },
+    createdAt: { type: String, required: true },
+    releaseDate: { type: String },
+    description: { type: String },
+    naturalLanguagePrompt: { type: String }
+  });
+
+  PaymentModel = mongoose.models.Payment || mongoose.model('Payment', paymentSchema);
+}
+
+// Ensure local db directory and file exist
+function initializeLocalDB() {
+  if (!fs.existsSync(LOCAL_DB_DIR)) {
+    fs.mkdirSync(LOCAL_DB_DIR, { recursive: true });
+  }
+  if (!fs.existsSync(LOCAL_DB_PATH)) {
+    fs.writeFileSync(LOCAL_DB_PATH, JSON.stringify([], null, 2));
+  }
+}
+
+// MongoDB connection helper
+async function connectToMongo() {
+  if (!MONGODB_URI) return false;
+  if (mongoose.connection.readyState === 1) return true;
+  try {
+    await mongoose.connect(MONGODB_URI);
+    console.log("Connected to MongoDB successfully.");
+    return true;
+  } catch (error) {
+    console.error("MongoDB connection failed, using local database fallback:", error);
+    return false;
+  }
+}
+
+// Reading from local JSON db
+function readLocalDB(): Payment[] {
+  initializeLocalDB();
+  try {
+    const data = fs.readFileSync(LOCAL_DB_PATH, 'utf-8');
+    return JSON.parse(data);
+  } catch (error) {
+    console.error("Failed to read local DB file, returning empty array:", error);
+    return [];
+  }
+}
+
+// Writing to local JSON db
+function writeLocalDB(payments: Payment[]) {
+  initializeLocalDB();
+  try {
+    fs.writeFileSync(LOCAL_DB_PATH, JSON.stringify(payments, null, 2));
+  } catch (error) {
+    console.error("Failed to write to local DB file:", error);
+  }
+}
+
+// DB Abstractions
+export async function savePayment(payment: Payment): Promise<Payment> {
+  const isMongoConnected = await connectToMongo();
+
+  if (isMongoConnected && PaymentModel) {
+    const newDoc = new PaymentModel(payment);
+    await newDoc.save();
+    return payment;
+  } else {
+    // Local JSON DB
+    const list = readLocalDB();
+    // Prevent duplicate entries
+    const exists = list.some(p => p.id === payment.id);
+    if (!exists) {
+      list.unshift(payment); // Add to beginning
+      writeLocalDB(list);
+    }
+    return payment;
+  }
+}
+
+export async function getPayments(): Promise<Payment[]> {
+  const isMongoConnected = await connectToMongo();
+
+  if (isMongoConnected && PaymentModel) {
+    const docs = await PaymentModel.find().sort({ createdAt: -1 }).lean();
+    return docs as unknown as Payment[];
+  } else {
+    // Local JSON DB
+    return readLocalDB();
+  }
+}
+
+export async function getPaymentById(id: string): Promise<Payment | null> {
+  const isMongoConnected = await connectToMongo();
+
+  if (isMongoConnected && PaymentModel) {
+    const doc = await PaymentModel.findOne({ id }).lean();
+    return doc as unknown as Payment | null;
+  } else {
+    // Local JSON DB
+    const list = readLocalDB();
+    return list.find(p => p.id === id) || null;
+  }
+}
+
+export async function updatePaymentStatus(
+  id: string,
+  status: PaymentStatus,
+  releaseDate?: string
+): Promise<Payment | null> {
+  const isMongoConnected = await connectToMongo();
+
+  if (isMongoConnected && PaymentModel) {
+    const updateData: Partial<Record<string, unknown>> = { status };
+    if (releaseDate) {
+      updateData.releaseDate = releaseDate;
+    }
+    const updated = await PaymentModel.findOneAndUpdate(
+      { id },
+      { $set: updateData },
+      { new: true }
+    ).lean();
+    return updated as unknown as Payment | null;
+  } else {
+    // Local JSON DB
+    const list = readLocalDB();
+    let updatedPayment: Payment | null = null;
+    const newList = list.map(p => {
+      if (p.id === id) {
+        updatedPayment = {
+          ...p,
+          status,
+          releaseDate: releaseDate || p.releaseDate
+        };
+        return updatedPayment;
+      }
+      return p;
+    });
+    if (updatedPayment) {
+      writeLocalDB(newList);
+    }
+    return updatedPayment;
+  }
+}

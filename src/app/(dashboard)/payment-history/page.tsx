@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useEscrow } from '@/context/EscrowContext';
 import { Payment } from '@/types/payment';
-import { InfoIcon, CancelIcon, CheckCircleIcon, ClockIcon, LockIcon } from '@/components/Icons';
+import { CancelIcon, CheckCircleIcon, ClockIcon, LockIcon } from '@/components/Icons';
 
 export default function PaymentHistoryPage() {
   const { payments } = useEscrow();
@@ -229,7 +229,7 @@ export default function PaymentHistoryPage() {
                     <span>⚡ Original Natural Language Prompt</span>
                   </p>
                   <div className="bg-slate-950/60 border border-white/5 rounded-xl p-3 font-mono text-slate-300 italic">
-                    "{selectedPayment.naturalLanguagePrompt}"
+                    &ldquo;{selectedPayment.naturalLanguagePrompt}&rdquo;
                   </div>
                 </div>
               )}
