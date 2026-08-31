@@ -73,9 +73,9 @@ export default function PaymentCard({ payment }: PaymentCardProps) {
 
         <div className="space-y-1 mb-3">
           <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Receiver</span>
-          <div className="flex items-center justify-between text-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
             <span className="font-semibold text-slate-200">{payment.receiverName}</span>
-            <span className="font-mono text-slate-500">{payment.receiverAddress}</span>
+            <span className="font-mono text-slate-500 truncate">{payment.receiverAddress}</span>
           </div>
         </div>
 

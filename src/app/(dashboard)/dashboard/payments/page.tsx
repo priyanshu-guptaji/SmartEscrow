@@ -55,7 +55,7 @@ export default function PaymentsPage() {
         </Link>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <input
             type="text"
@@ -69,7 +69,7 @@ export default function PaymentsPage() {
           </div>
         </div>
 
-        <div className="flex rounded-lg bg-slate-950/60 p-0.5 border border-white/5">
+        <div className="flex flex-wrap rounded-lg bg-slate-950/60 p-0.5 border border-white/5">
           {(['all', 'active', 'completed', 'cancelled'] as const).map((t) => (
             <button
               key={t}

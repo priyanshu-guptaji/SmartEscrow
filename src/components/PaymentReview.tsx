@@ -139,7 +139,7 @@ export default function PaymentReview({
         </div>
       )}
 
-      <div className="flex items-center justify-between pt-2">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between pt-2 gap-3">
         <button
           type="button"
           onClick={onEdit}

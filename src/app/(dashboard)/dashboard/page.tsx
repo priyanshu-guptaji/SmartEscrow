@@ -117,11 +117,11 @@ export default function DashboardPage() {
         
         {/* Left Column: Escrow Payments List */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <h2 className="text-lg font-bold text-white">Your Agreements</h2>
             
             {/* Filter buttons */}
-            <div className="flex rounded-lg bg-slate-950/60 p-0.5 border border-white/5">
+            <div className="flex flex-wrap rounded-lg bg-slate-950/60 p-0.5 border border-white/5">
               {(['all', 'active', 'completed', 'cancelled'] as const).map((t) => (
                 <button
                   key={t}

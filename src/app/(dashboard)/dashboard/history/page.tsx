@@ -85,7 +85,7 @@ export default function HistoryPage() {
         </p>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <input
             type="text"
@@ -98,7 +98,7 @@ export default function HistoryPage() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-xl bg-slate-950 border border-white/10 px-4 py-2.5 text-xs text-slate-300 focus:outline-none focus:border-indigo-500 w-40"
+          className="rounded-xl bg-slate-950 border border-white/10 px-4 py-2.5 text-xs text-slate-300 focus:outline-none focus:border-indigo-500 w-full sm:w-40"
         >
           <option value="all">All Status</option>
           <option value="active">Active</option>
@@ -110,47 +110,47 @@ export default function HistoryPage() {
 
       <div className="glass-card rounded-2xl border border-white/5 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse min-w-[700px]">
             <thead>
               <tr className="border-b border-white/5 bg-white/[0.01] text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                <th className="px-6 py-4">Date</th>
-                <th className="px-6 py-4">Payment ID</th>
-                <th className="px-6 py-4">Receiver</th>
-                <th className="px-6 py-4">Amount</th>
-                <th className="px-6 py-4">Type</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">TX Hash</th>
-                <th className="px-6 py-4 text-right">Details</th>
+                <th className="px-4 sm:px-6 py-4">Date</th>
+                <th className="px-4 sm:px-6 py-4">Payment ID</th>
+                <th className="px-4 sm:px-6 py-4">Receiver</th>
+                <th className="px-4 sm:px-6 py-4">Amount</th>
+                <th className="px-4 sm:px-6 py-4 hidden sm:table-cell">Type</th>
+                <th className="px-4 sm:px-6 py-4">Status</th>
+                <th className="px-4 sm:px-6 py-4 hidden md:table-cell">TX Hash</th>
+                <th className="px-4 sm:px-6 py-4 text-right">Details</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5 text-xs text-slate-300 font-medium">
               {filteredPayments.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-slate-500 font-normal">
+                  <td colSpan={8} className="px-4 sm:px-6 py-12 text-center text-slate-500 font-normal">
                     No transactions found.
                   </td>
                 </tr>
               ) : (
                 filteredPayments.map((payment) => (
                   <tr key={payment.id} className="hover:bg-white/[0.01] transition-colors">
-                    <td className="px-6 py-4 text-slate-400 whitespace-nowrap">
+                    <td className="px-4 sm:px-6 py-4 text-slate-400 whitespace-nowrap text-[10px] sm:text-xs">
                       {formatDate(payment.createdAt)}
                     </td>
-                    <td className="px-6 py-4 font-mono font-bold text-slate-400">
+                    <td className="px-4 sm:px-6 py-4 font-mono font-bold text-slate-400 text-[10px] sm:text-xs">
                       {payment.id}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 sm:px-6 py-4">
                       <div className="text-white font-semibold">{payment.receiverName}</div>
                     </td>
-                    <td className="px-6 py-4 font-mono font-bold text-slate-200">
+                    <td className="px-4 sm:px-6 py-4 font-mono font-bold text-slate-200">
                       {payment.amount} {payment.token}
                     </td>
-                    <td className="px-6 py-4 capitalize text-slate-400">{payment.type}</td>
-                    <td className="px-6 py-4">{getStatusBadge(payment.status)}</td>
-                    <td className="px-6 py-4 font-mono text-[10px] text-slate-500 max-w-[120px] truncate">
+                    <td className="px-4 sm:px-6 py-4 capitalize text-slate-400 hidden sm:table-cell">{payment.type}</td>
+                    <td className="px-4 sm:px-6 py-4">{getStatusBadge(payment.status)}</td>
+                    <td className="px-4 sm:px-6 py-4 font-mono text-[10px] text-slate-500 max-w-[120px] truncate hidden md:table-cell">
                       {payment.txHash || payment.fundedTxHash || '—'}
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-4 sm:px-6 py-4 text-right">
                       <Link
                         href={`/dashboard/payments/${payment.id}`}
                         className="rounded-lg bg-white/5 border border-white/10 hover:border-indigo-500/30 hover:bg-indigo-500/5 px-2.5 py-1 text-[11px] font-semibold text-slate-300 hover:text-indigo-400 transition-all inline-flex items-center gap-1"

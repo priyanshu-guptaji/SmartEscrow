@@ -251,10 +251,10 @@ export default function CreatePaymentPage() {
 
       {step === 'input' && (
         <>
-          <div className="flex border-b border-white/[0.06] gap-6">
+          <div className="flex border-b border-white/[0.06] gap-4 sm:gap-6 overflow-x-auto">
             <button
               onClick={() => setActiveTab('ai')}
-              className={`pb-3 text-sm font-semibold transition-all relative ${
+              className={`pb-3 text-sm font-semibold transition-all relative whitespace-nowrap ${
                 activeTab === 'ai'
                   ? 'text-indigo-400 border-b-2 border-indigo-500'
                   : 'text-slate-500 hover:text-slate-300'
@@ -267,7 +267,7 @@ export default function CreatePaymentPage() {
             </button>
             <button
               onClick={() => setActiveTab('manual')}
-              className={`pb-3 text-sm font-semibold transition-all relative ${
+              className={`pb-3 text-sm font-semibold transition-all relative whitespace-nowrap ${
                 activeTab === 'manual'
                   ? 'text-indigo-400 border-b-2 border-indigo-500'
                   : 'text-slate-500 hover:text-slate-300'
@@ -515,7 +515,7 @@ export default function CreatePaymentPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-4 border-t border-white/5">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between pt-4 border-t border-white/5 gap-3">
                 <button
                   type="button"
                   onClick={() => setActiveTab('ai')}

@@ -233,12 +233,12 @@ export default function PaymentDetailPage() {
       <div className="glass-card rounded-2xl p-6 border border-white/5 space-y-4">
         <h3 className="text-sm font-bold text-white border-b border-white/5 pb-3">Transaction Log</h3>
         <div className="space-y-3 font-mono text-[10px] text-slate-400">
-          <div className="flex justify-between items-center pb-2 border-b border-white/5">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 pb-2 border-b border-white/5">
             <span><span className="text-indigo-400">[DEPLOYED]</span> Payment created</span>
             <span>{formatDate(payment.createdAt)}</span>
           </div>
           {payment.txHash && (
-            <div className="flex justify-between items-center pb-2 border-b border-white/5">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 pb-2 border-b border-white/5">
               <span><span className="text-amber-400">[DEPOSIT]</span> Funds deposited</span>
               <a href={`${EXPLORER_BASE}${payment.txHash}`} target="_blank" rel="noopener noreferrer" className="text-amber-400 truncate max-w-[200px] hover:underline">
                 {payment.txHash.slice(0, 10)}...
@@ -246,7 +246,7 @@ export default function PaymentDetailPage() {
             </div>
           )}
           {payment.releasedTxHash && (
-            <div className="flex justify-between items-center pb-2 border-b border-white/5">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 pb-2 border-b border-white/5">
               <span><span className="text-emerald-400">[RELEASED]</span> Funds released</span>
               <a href={`${EXPLORER_BASE}${payment.releasedTxHash}`} target="_blank" rel="noopener noreferrer" className="text-emerald-400 truncate max-w-[200px] hover:underline">
                 {payment.releasedTxHash.slice(0, 10)}...
@@ -254,7 +254,7 @@ export default function PaymentDetailPage() {
             </div>
           )}
           {payment.refundedTxHash && (
-            <div className="flex justify-between items-center pb-2 border-b border-white/5">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 pb-2 border-b border-white/5">
               <span><span className="text-rose-400">[REFUNDED]</span> Funds refunded</span>
               <a href={`${EXPLORER_BASE}${payment.refundedTxHash}`} target="_blank" rel="noopener noreferrer" className="text-rose-400 truncate max-w-[200px] hover:underline">
                 {payment.refundedTxHash.slice(0, 10)}...
@@ -262,7 +262,7 @@ export default function PaymentDetailPage() {
             </div>
           )}
           {payment.releaseDate && (
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
               <span><span className="text-slate-500">[STATUS]</span> Payment {effectiveStatus}</span>
               <span>{formatDate(payment.releaseDate)}</span>
             </div>
@@ -271,7 +271,7 @@ export default function PaymentDetailPage() {
       </div>
 
       {effectiveStatus === 'active' && (
-        <div className="flex items-center justify-end gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3">
           <button
             onClick={handleRefund}
             disabled={isProcessing}
