@@ -1,11 +1,12 @@
-export type PaymentType = 'conditional' | 'scheduled' | 'recurring';
+export type PaymentType = 'conditional' | 'scheduled' | 'recurring' | 'nft-conditional';
 
 export type PaymentStatus = 'pending' | 'active' | 'completed' | 'cancelled';
 
-export type TokenSymbol = 'ETH' | 'USDC' | 'USDT' | 'SOL';
+export type TokenSymbol = 'ETH' | 'USDC' | 'USDT';
 
 export interface Payment {
   id: string;
+  senderAddress: string;
   receiverName: string;
   receiverAddress: string;
   amount: number;
@@ -23,6 +24,8 @@ export interface Payment {
   releasedTxHash?: string;
   refundedTxHash?: string;
   duration?: number;
+  scheduledAt?: string;
+  frequency?: string;
 }
 
 export interface DashboardMetrics {

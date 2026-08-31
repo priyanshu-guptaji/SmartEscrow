@@ -1,7 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { useAccount } from 'wagmi';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { useAccount, useSignMessage } from 'wagmi';
 import { Payment, DashboardMetrics } from '@/types/payment';
 import { MOCK_PAYMENTS, TOKEN_PRICES, MOCK_WALLET_BALANCE } from '@/lib/mockData';
 
@@ -10,63 +10,132 @@ interface EscrowContextType {
   isLoading: boolean;
   walletConnected: boolean;
   walletAddress: string | null;
-  addPayment: (payment: Omit<Payment, 'id' | 'createdAt' | 'status'>) => Promise<Payment>;
+  addPayment: (payment: Omit<Payment, 'id' | 'createdAt' | 'status' | 'senderAddress'>) => Promise<Payment>;
   triggerRelease: (id: string) => Promise<void>;
   cancelPayment: (id: string) => Promise<void>;
   refreshPayments: () => Promise<void>;
+  getAuthHeaders: () => Promise<Record<string, string> | null>;
   metrics: DashboardMetrics;
   isInitialized: boolean;
 }
 
 const EscrowContext = createContext<EscrowContextType | undefined>(undefined);
 
+const AUTH_HEADER_TTL_MS = 4 * 60 * 1000; // 4 minutes (nonce expires in 5)
+
+interface CachedAuth {
+  headers: Record<string, string>;
+  expiresAt: number;
+}
+
+/**
+ * Build wallet auth headers by requesting a nonce and having the wallet sign it.
+ * Returns headers to attach to API requests, or null if authentication fails.
+ */
+async function buildAuthHeaders(
+  address: string,
+  signMessageAsync: (args: { message: string }) => Promise<string>
+): Promise<Record<string, string> | null> {
+  try {
+    const nonceRes = await fetch('/api/auth/nonce', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ address }),
+    });
+    if (!nonceRes.ok) {
+      console.error('Nonce request failed:', nonceRes.status);
+      return null;
+    }
+    const { nonce, message } = await nonceRes.json();
+
+    const signature = await signMessageAsync({ message });
+
+    return {
+      'X-Wallet-Address': address,
+      'X-Wallet-Signature': signature,
+      'X-Wallet-Nonce': nonce,
+    };
+  } catch (err) {
+    console.error('Auth header build failed:', err instanceof Error ? err.message : err);
+    return null;
+  }
+}
+
 export function EscrowProvider({ children }: { children: React.ReactNode }) {
   const { address, isConnected } = useAccount();
-  const [payments, setPayments] = useState<Payment[]>(MOCK_PAYMENTS);
+  const { signMessageAsync } = useSignMessage();
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Seed the mock dataset into the local database on first run
-  const seedMockData = useCallback(async () => {
-    try {
-      for (const payment of MOCK_PAYMENTS) {
-        await fetch('/api/payments', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payment),
-        });
-      }
-    } catch {
-      // Silently fail seeding — UI still shows mock data
+  // Cached auth headers to avoid redundant wallet signature popups
+  const authCacheRef = useRef<CachedAuth | null>(null);
+
+  const getCachedAuthHeaders = useCallback(async (): Promise<Record<string, string> | null> => {
+    if (!isConnected || !address) return null;
+
+    // Return cached headers if still valid
+    if (authCacheRef.current && authCacheRef.current.expiresAt > Date.now()) {
+      return authCacheRef.current.headers;
     }
-  }, []);
+
+    // Build fresh headers
+    const headers = await buildAuthHeaders(address, signMessageAsync);
+    if (headers) {
+      authCacheRef.current = {
+        headers,
+        expiresAt: Date.now() + AUTH_HEADER_TTL_MS,
+      };
+    }
+    return headers;
+  }, [isConnected, address, signMessageAsync]);
+
+  // Invalidate cache when wallet disconnects or address changes
+  useEffect(() => {
+    if (!isConnected || !address) {
+      authCacheRef.current = null;
+    }
+  }, [isConnected, address]);
 
   // Fetch payments from the database API (falls back to mock if unavailable)
   const refreshPayments = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await fetch('/api/payments');
-      if (res.ok) {
-        const { data } = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          setPayments(data);
-        } else {
-          // API returned empty — stay with mock data seed
+      const authHeaders = await getCachedAuthHeaders();
+
+      if (authHeaders) {
+        const res = await fetch('/api/payments', { headers: authHeaders });
+        if (res.ok) {
+          const { data } = await res.json();
+          if (Array.isArray(data)) {
+            if (data.length > 0) {
+              setPayments(data);
+            } else {
+              // Authenticated but no real payments — show mock data as demo examples
+              // Mock data is NOT persisted to DB to avoid contaminating real payment records
+              setPayments(MOCK_PAYMENTS);
+            }
+          } else {
+            setPayments(MOCK_PAYMENTS);
+          }
+        } else if (res.status === 401) {
+          // Auth failed — invalidate cache and show mock data
+          authCacheRef.current = null;
           setPayments(MOCK_PAYMENTS);
-          // Seed mock data into local DB for first run
-          await seedMockData();
+        } else {
+          setPayments(MOCK_PAYMENTS);
         }
       } else {
+        // Not connected or auth failed — show mock data
         setPayments(MOCK_PAYMENTS);
       }
     } catch {
-      // API unavailable; fallback to mock data
       setPayments(MOCK_PAYMENTS);
     } finally {
       setIsLoading(false);
       setIsInitialized(true);
     }
-  }, [seedMockData]);
+  }, [getCachedAuthHeaders]);
 
   useEffect(() => {
     let cancelled = false;
@@ -80,11 +149,12 @@ export function EscrowProvider({ children }: { children: React.ReactNode }) {
   }, [refreshPayments]);
 
   const addPayment = async (
-    newPaymentData: Omit<Payment, 'id' | 'createdAt' | 'status'>
+    newPaymentData: Omit<Payment, 'id' | 'createdAt' | 'status' | 'senderAddress'>
   ): Promise<Payment> => {
     const newPayment: Payment = {
       ...newPaymentData,
-      id: `pay_${Date.now()}`,
+      senderAddress: address || '',
+      id: `pay_${crypto.randomUUID()}`,
       createdAt: new Date().toISOString(),
       status: 'active',
     };
@@ -92,11 +162,16 @@ export function EscrowProvider({ children }: { children: React.ReactNode }) {
     // Optimistic update
     setPayments((prev) => [newPayment, ...prev]);
 
-    // Persist to API
+    // Persist to API with wallet auth
     try {
+      const authHeaders = await getCachedAuthHeaders();
+
       await fetch('/api/payments', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authHeaders || {}),
+        },
         body: JSON.stringify(newPayment),
       });
     } catch (e) {
@@ -115,11 +190,25 @@ export function EscrowProvider({ children }: { children: React.ReactNode }) {
     );
 
     try {
-      await fetch('/api/payments', {
+      const authHeaders = await getCachedAuthHeaders();
+
+      if (!authHeaders) {
+        console.error('Cannot update payment: wallet authentication failed');
+        return;
+      }
+
+      const res = await fetch('/api/payments', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders,
+        },
         body: JSON.stringify({ id, status: 'completed', releaseDate }),
       });
+
+      if (!res.ok) {
+        console.error('PATCH failed:', res.status, await res.text());
+      }
     } catch (e) {
       console.error('Failed to update payment status:', e);
     }
@@ -134,11 +223,25 @@ export function EscrowProvider({ children }: { children: React.ReactNode }) {
     );
 
     try {
-      await fetch('/api/payments', {
+      const authHeaders = await getCachedAuthHeaders();
+
+      if (!authHeaders) {
+        console.error('Cannot update payment: wallet authentication failed');
+        return;
+      }
+
+      const res = await fetch('/api/payments', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders,
+        },
         body: JSON.stringify({ id, status: 'cancelled', releaseDate }),
       });
+
+      if (!res.ok) {
+        console.error('PATCH failed:', res.status, await res.text());
+      }
     } catch (e) {
       console.error('Failed to update payment status:', e);
     }
@@ -175,6 +278,7 @@ export function EscrowProvider({ children }: { children: React.ReactNode }) {
         triggerRelease,
         cancelPayment,
         refreshPayments,
+        getAuthHeaders: getCachedAuthHeaders,
         metrics,
         isInitialized,
       }}

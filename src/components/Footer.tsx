@@ -21,13 +21,7 @@ export default function Footer() {
               AI-Powered Web3 conditional payments, translating natural language into secure, self-executing escrows.
             </p>
             <div className="flex gap-4 text-xs font-medium text-slate-500">
-              <span>Arbitrum</span>
-              <span>•</span>
-              <span>Optimism</span>
-              <span>•</span>
-              <span>Ethereum</span>
-              <span>•</span>
-              <span>Solana</span>
+              <span>Base Sepolia</span>
             </div>
           </div>
 
@@ -46,8 +40,8 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/dashboard/payment-history" className="hover:text-white transition-colors">
-                  Transaction Audit
+                <Link href="/dashboard/history" className="hover:text-white transition-colors">
+                  Transaction History
                 </Link>
               </li>
             </ul>
@@ -63,10 +57,9 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <span className="text-slate-600 cursor-not-allowed">Documentation (Soon)</span>
-              </li>
-              <li>
-                <span className="text-slate-600 cursor-not-allowed">Smart Contracts (Soon)</span>
+                <Link href="/dashboard" className="hover:text-white transition-colors">
+                  Smart Contracts
+                </Link>
               </li>
             </ul>
           </div>
@@ -77,9 +70,7 @@ export default function Footer() {
             &copy; {new Date().getFullYear()} SmartEscrow. Mock UI demonstrating next-gen Web3 UX. All rights reserved.
           </p>
           <div className="flex gap-6 text-sm">
-            <span className="hover:text-white cursor-pointer transition-colors">Twitter</span>
-            <span className="hover:text-white cursor-pointer transition-colors">Discord</span>
-            <span className="hover:text-white cursor-pointer transition-colors">GitHub</span>
+            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">GitHub</a>
           </div>
         </div>
       </div>

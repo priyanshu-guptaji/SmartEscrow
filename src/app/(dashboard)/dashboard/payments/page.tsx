@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { PlusIcon } from '@/components/Icons';
 
 export default function PaymentsPage() {
-  const { payments, triggerRelease, cancelPayment } = useEscrow();
+  const { payments } = useEscrow();
   const { isConnected } = useAccount();
   const [filter, setFilter] = useState<'all' | 'active' | 'completed' | 'cancelled'>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'conditional' | 'scheduled' | 'recurring'>('all');
@@ -109,14 +109,12 @@ export default function PaymentsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {displayedPayments.map((payment) => (
-            <PaymentCard
-              key={payment.id}
-              payment={payment}
-              onRelease={triggerRelease}
-              onCancel={cancelPayment}
-            />
-          ))}
+              {displayedPayments.map((payment) => (
+                <PaymentCard
+                  key={payment.id}
+                  payment={payment}
+                />
+              ))}
         </div>
       )}
     </div>

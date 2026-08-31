@@ -15,7 +15,6 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       <Sidebar
         walletConnected={isConnected}
         connectedWallet={address ?? null}
-        toggleWallet={() => {}} // handled by WalletWidget
       />
 
       {/* Right Content Area */}

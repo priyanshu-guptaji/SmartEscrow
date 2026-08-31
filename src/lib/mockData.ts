@@ -1,10 +1,16 @@
 import { Payment, TokenSymbol } from '@/types/payment';
 
+// Dev-only mock seed data. These are fake demo records injected into the local
+// JSON fallback DB when MongoDB is not configured.  They intentionally use the
+// same dummy sender address so the dev dashboard is populated.
+const DEV_SENDER = '0x1234567890abcdef1234567890abcdef12345678';
+
 export const MOCK_PAYMENTS: Payment[] = [
   {
     id: 'pay_001',
+    senderAddress: DEV_SENDER,
     receiverName: 'Alice Vance',
-    receiverAddress: '0x71C...65B2',
+    receiverAddress: '0x71C2728892154F65B20a8642657132C0424165B2',
     amount: 1.25,
     token: 'ETH',
     type: 'conditional',
@@ -16,8 +22,9 @@ export const MOCK_PAYMENTS: Payment[] = [
   },
   {
     id: 'pay_002',
+    senderAddress: DEV_SENDER,
     receiverName: 'Bob Builder',
-    receiverAddress: '0x3Fd...19a2',
+    receiverAddress: '0x3Fd9b2401de1a35B2781B7e9A06a5d18B68e19a2',
     amount: 500.0,
     token: 'USDC',
     type: 'conditional',
@@ -29,22 +36,24 @@ export const MOCK_PAYMENTS: Payment[] = [
   },
   {
     id: 'pay_003',
+    senderAddress: DEV_SENDER,
     receiverName: 'Charlie Dev',
-    receiverAddress: '8xKm...Y3t4',
-    amount: 10.0,
-    token: 'SOL',
+    receiverAddress: '0x742d35Cc6634C0532925a3b844Bc9e7595f2bD38',
+    amount: 0.5,
+    token: 'ETH',
     type: 'conditional',
     status: 'completed',
-    condition: 'BTC price hits $100,000 before December 31, 2026 according to Chainlink oracle.',
+    condition: 'Release when the smart contract unit test suite achieves 100% code coverage.',
     createdAt: '2026-07-10T08:00:00Z',
     releaseDate: '2026-07-22T19:45:00Z',
-    description: 'Market prediction wager',
-    naturalLanguagePrompt: 'Send Charlie 10 SOL if BTC price hits $100k before Dec 31.'
+    description: 'Test coverage bounty',
+    naturalLanguagePrompt: 'Send Charlie 0.5 ETH when test coverage hits 100%.'
   },
   {
     id: 'pay_004',
+    senderAddress: DEV_SENDER,
     receiverName: 'Dave Operations',
-    receiverAddress: '0x99A...d981',
+    receiverAddress: '0x99A8d981C5b2781B7e9A06a5d18B68e3E3e3e3e3',
     amount: 250.0,
     token: 'USDT',
     type: 'recurring',
@@ -52,12 +61,14 @@ export const MOCK_PAYMENTS: Payment[] = [
     condition: 'Released automatically on the 1st of every month.',
     createdAt: '2026-06-01T00:00:00Z',
     description: 'Monthly tooling subscription payment',
-    naturalLanguagePrompt: 'Pay Dave 250 USDT recurring on the 1st of every month.'
+    naturalLanguagePrompt: 'Pay Dave 250 USDT recurring on the 1st of every month.',
+    frequency: 'monthly',
   },
   {
     id: 'pay_005',
+    senderAddress: DEV_SENDER,
     receiverName: 'Eve Consultant',
-    receiverAddress: '0xEee...882a',
+    receiverAddress: '0xEee5228892154F65B20a8642657132C04241882a',
     amount: 1.5,
     token: 'ETH',
     type: 'scheduled',
@@ -65,12 +76,14 @@ export const MOCK_PAYMENTS: Payment[] = [
     condition: 'Release automatically on September 1, 2026 at 12:00 UTC.',
     createdAt: '2026-07-18T16:00:00Z',
     description: 'Scheduled Q3 advisory payout',
-    naturalLanguagePrompt: 'Pay Eve 1.5 ETH scheduled on September 1, 2026.'
+    naturalLanguagePrompt: 'Pay Eve 1.5 ETH scheduled on September 1, 2026.',
+    scheduledAt: '2026-09-01T12:00:00Z',
   },
   {
     id: 'pay_006',
+    senderAddress: DEV_SENDER,
     receiverName: 'Frank Marketer',
-    receiverAddress: '0x44B...77c3',
+    receiverAddress: '0x44B7c329892154F65B20a8642657132C0424177c3',
     amount: 0.8,
     token: 'ETH',
     type: 'conditional',
@@ -87,14 +100,10 @@ export const TOKEN_PRICES: { [key in TokenSymbol]: number } = {
   ETH: 3400.0,
   USDC: 1.0,
   USDT: 1.0,
-  SOL: 145.0
 };
 
 export const MOCK_WALLET_BALANCE = {
   ETH: 4.82,
   USDC: 2450.0,
   USDT: 120.0,
-  SOL: 32.5
 };
-
-export const MOCK_CONNECTED_WALLET = '0x71C272...65B20a8';

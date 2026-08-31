@@ -1,17 +1,50 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useBalance, useReadContract } from 'wagmi';
-import { parseEther, formatEther, type Address } from 'viem';
+import { parseUnits, formatEther, decodeEventLog, type Address } from 'viem';
 import { SMART_ESCROW_ABI, ERC20_ABI, TOKEN_ADDRESSES } from '@/lib/contracts';
 import type { TxState, TokenSymbol } from '@/types/payment';
 
 const ESCROW_ADDRESS = (process.env.NEXT_PUBLIC_SMART_ESCROW_ADDRESS || '') as Address;
 
+function parseWalletError(message: string): string {
+  const msg = message.toLowerCase();
+  if (msg.includes('user rejected') || msg.includes('user denied') || msg.includes('action_rejected')) {
+    return 'Transaction was rejected by your wallet.';
+  }
+  if (msg.includes('insufficient funds') || msg.includes('insufficient balance')) {
+    return 'Insufficient funds for this transaction. Please add ETH to your wallet.';
+  }
+  if (msg.includes('wrong network') || msg.includes('chain') && msg.includes('mismatch')) {
+    return 'Wrong network. Please switch MetaMask to Base Sepolia (chainId 84532).';
+  }
+  if (msg.includes('not deployed') || msg.includes('escrow contract not deployed')) {
+    return 'SmartEscrow contract not deployed. Set NEXT_PUBLIC_SMART_ESCROW_ADDRESS in .env.local.';
+  }
+  if (msg.includes('nonce')) {
+    return 'Transaction nonce error. Please reset your MetaMask account (Settings > Advanced > Reset Account).';
+  }
+  if (msg.includes('gas')) {
+    return 'Transaction will exceed gas limits or gas estimation failed. Try a smaller amount.';
+  }
+  if (msg.includes('execution reverted')) {
+    return 'Smart contract execution failed. The transaction was reverted on-chain.';
+  }
+  return message;
+}
+
 function getTokenAddress(token: TokenSymbol): Address | null {
   if (token === 'ETH') return null;
   const addr = TOKEN_ADDRESSES[token];
   return addr ? (addr as Address) : null;
+}
+
+function getTokenDecimals(token: TokenSymbol): number {
+  if (token === 'ETH') return 18;
+  if (token === 'USDC') return 6;
+  if (token === 'USDT') return 6;
+  return 18;
 }
 
 type CreateEscrowParams = {
@@ -43,11 +76,38 @@ export function useEscrowContract() {
 
   const { writeContractAsync } = useWriteContract();
 
-  const { isLoading: isConfirming } = useWaitForTransactionReceipt({
+  const { isLoading: isConfirming, data: receipt } = useWaitForTransactionReceipt({
     hash: txHash,
   });
 
   const { data: balance } = useBalance({ address });
+
+  // Derive escrowId from receipt logs (no useEffect needed)
+  const escrowId = useMemo(() => {
+    if (!receipt) return null;
+    for (const log of receipt.logs) {
+      try {
+        const decoded = decodeEventLog({
+          abi: SMART_ESCROW_ABI,
+          data: log.data,
+          topics: log.topics,
+        });
+        if (decoded.eventName === 'EscrowCreated' && decoded.args) {
+          const args = decoded.args as { id: bigint };
+          return Number(args.id);
+        }
+      } catch {
+        // Not this event
+      }
+    }
+    return null;
+  }, [receipt]);
+
+  // Derive effective txState — if receipt arrived, we're confirmed
+  const effectiveTxState: TxState = useMemo(() => {
+    if (receipt && txState === 'confirming') return 'confirmed';
+    return txState;
+  }, [receipt, txState]);
 
   const createEscrow = useCallback(
     async ({ receiver, token, amount, condition, duration }: CreateEscrowParams) => {
@@ -58,7 +118,8 @@ export function useEscrowContract() {
       setError(null);
 
       const tokenAddress = getTokenAddress(token);
-      const amountWei = parseEther(amount);
+      const decimals = getTokenDecimals(token);
+      const amountWei = parseUnits(amount, decimals);
 
       try {
         if (token === 'ETH') {
@@ -98,7 +159,8 @@ export function useEscrowContract() {
         }
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Transaction failed';
-        setError(message);
+        const friendlyMessage = parseWalletError(message);
+        setError(friendlyMessage);
         setTxState('failed');
         throw err;
       }
@@ -115,7 +177,8 @@ export function useEscrowContract() {
       setError(null);
 
       const tokenAddress = getTokenAddress(token);
-      const amountWei = parseEther(amount);
+      const decimals = getTokenDecimals(token);
+      const amountWei = parseUnits(amount, decimals);
 
       try {
         if (token === 'ETH') {
@@ -155,7 +218,7 @@ export function useEscrowContract() {
         }
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Transaction failed';
-        setError(message);
+        setError(parseWalletError(message));
         setTxState('failed');
         throw err;
       }
@@ -172,7 +235,8 @@ export function useEscrowContract() {
       setError(null);
 
       const tokenAddress = getTokenAddress(token);
-      const amountWei = parseEther(amount);
+      const decimals = getTokenDecimals(token);
+      const amountWei = parseUnits(amount, decimals);
 
       try {
         if (token === 'ETH') {
@@ -212,7 +276,7 @@ export function useEscrowContract() {
         }
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Transaction failed';
-        setError(message);
+        setError(parseWalletError(message));
         setTxState('failed');
         throw err;
       }
@@ -229,7 +293,8 @@ export function useEscrowContract() {
       setError(null);
 
       const tokenAddress = getTokenAddress(token);
-      const amountWei = parseEther(amount);
+      const decimals = getTokenDecimals(token);
+      const amountWei = parseUnits(amount, decimals);
 
       try {
         if (token === 'ETH') {
@@ -269,7 +334,7 @@ export function useEscrowContract() {
         }
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Transaction failed';
-        setError(message);
+        setError(parseWalletError(message));
         setTxState('failed');
         throw err;
       }
@@ -297,7 +362,7 @@ export function useEscrowContract() {
         return hash;
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Release failed';
-        setError(message);
+        setError(parseWalletError(message));
         setTxState('failed');
         throw err;
       }
@@ -325,7 +390,7 @@ export function useEscrowContract() {
         return hash;
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Refund failed';
-        setError(message);
+        setError(parseWalletError(message));
         setTxState('failed');
         throw err;
       }
@@ -353,7 +418,7 @@ export function useEscrowContract() {
         return hash;
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Resolve failed';
-        setError(message);
+        setError(parseWalletError(message));
         setTxState('failed');
         throw err;
       }
@@ -381,7 +446,7 @@ export function useEscrowContract() {
         return hash;
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Scheduled release failed';
-        setError(message);
+        setError(parseWalletError(message));
         setTxState('failed');
         throw err;
       }
@@ -409,7 +474,7 @@ export function useEscrowContract() {
         return hash;
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Recurring payout failed';
-        setError(message);
+        setError(parseWalletError(message));
         setTxState('failed');
         throw err;
       }
@@ -424,10 +489,11 @@ export function useEscrowContract() {
   }, []);
 
   return {
-    txState,
+    txState: effectiveTxState,
     txHash,
     isConfirming,
     error,
+    escrowId,
     balance: balance ? parseFloat(formatEther(balance.value)) : 0,
     createEscrow,
     createScheduledEscrow,

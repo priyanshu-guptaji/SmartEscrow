@@ -15,6 +15,11 @@ contract SmartEscrow {
     enum EscrowStatus { Active, Completed, Refunded }
     enum EscrowType { Conditional, Scheduled, Recurring }
 
+    // Reentrancy guard
+    uint256 private constant NOT_ENTERED = 1;
+    uint256 private constant ENTERED = 2;
+    uint256 private _status;
+
     struct Escrow {
         uint256 id;
         address payable sender;
@@ -65,10 +70,18 @@ contract SmartEscrow {
         _;
     }
 
+    modifier nonReentrant() {
+        require(_status != ENTERED, "ReentrancyGuard: reentrant call");
+        _status = ENTERED;
+        _;
+        _status = NOT_ENTERED;
+    }
+
     constructor(address _oracle) {
         require(_oracle != address(0), "Oracle address cannot be zero");
         oracle = _oracle;
         executor = _oracle; // default executor = oracle
+        _status = NOT_ENTERED;
         emit OracleUpdated(address(0), _oracle);
     }
 
@@ -167,7 +180,7 @@ contract SmartEscrow {
         return escrowId;
     }
 
-    function release(uint256 _id) external {
+    function release(uint256 _id) external nonReentrant {
         Escrow storage escrow = escrows[_id];
         require(escrow.status == EscrowStatus.Active, "Escrow is not active");
         require(
@@ -178,7 +191,7 @@ contract SmartEscrow {
         _releaseEscrow(_id);
     }
 
-    function refund(uint256 _id) external {
+    function refund(uint256 _id) external nonReentrant {
         Escrow storage escrow = escrows[_id];
         require(escrow.status == EscrowStatus.Active, "Escrow is not active");
 
@@ -193,7 +206,7 @@ contract SmartEscrow {
         _refundEscrow(_id);
     }
 
-    function resolveEscrow(uint256 _id, bool _release) external onlyOracle {
+    function resolveEscrow(uint256 _id, bool _release) external onlyOracle nonReentrant {
         if (_release) {
             _releaseEscrow(_id);
         } else {
@@ -201,7 +214,7 @@ contract SmartEscrow {
         }
     }
 
-    function executeScheduledRelease(uint256 _id) external onlyExecutorOrOracle {
+    function executeScheduledRelease(uint256 _id) external onlyExecutorOrOracle nonReentrant {
         Escrow storage escrow = escrows[_id];
         require(escrow.status == EscrowStatus.Active, "Escrow is not active");
         require(escrow.escrowType == EscrowType.Scheduled, "Not a scheduled escrow");
@@ -210,7 +223,7 @@ contract SmartEscrow {
         _releaseEscrow(_id);
     }
 
-    function executeRecurringPayout(uint256 _id) external onlyExecutorOrOracle {
+    function executeRecurringPayout(uint256 _id) external onlyExecutorOrOracle nonReentrant {
         Escrow storage escrow = escrows[_id];
         require(escrow.status == EscrowStatus.Active, "Escrow is not active");
         require(escrow.escrowType == EscrowType.Recurring, "Not a recurring escrow");

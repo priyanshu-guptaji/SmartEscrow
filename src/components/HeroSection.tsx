@@ -24,12 +24,12 @@ const SIMULATION_STEPS = [
     }
   },
   {
-    input: "Pay Charlie 20 SOL if BTC price closes above $100k on August 31st.",
+    input: "Pay Charlie 0.5 ETH when test coverage hits 100%.",
     parsed: {
-      recipient: "Charlie Dev (8xKm...Y3t4)",
-      amount: "20.0 SOL",
-      condition: "BTC price > $100,000 on 2026-08-31",
-      type: "Market Oracle Escrow"
+      recipient: "Charlie Dev (0x742d...D38)",
+      amount: "0.5 ETH",
+      condition: "Test suite achieves 100% code coverage",
+      type: "Conditional Escrow"
     }
   }
 ];

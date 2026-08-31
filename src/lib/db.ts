@@ -15,6 +15,7 @@ let PaymentModel: mongoose.Model<Payment> | null = null;
 if (MONGODB_URI) {
   const paymentSchema = new mongoose.Schema({
     id: { type: String, required: true, unique: true },
+    senderAddress: { type: String, required: true, index: true },
     receiverName: { type: String, required: true },
     receiverAddress: { type: String, required: true },
     amount: { type: Number, required: true },
@@ -25,7 +26,15 @@ if (MONGODB_URI) {
     createdAt: { type: String, required: true },
     releaseDate: { type: String },
     description: { type: String },
-    naturalLanguagePrompt: { type: String }
+    naturalLanguagePrompt: { type: String },
+    contractEscrowId: { type: Number },
+    txHash: { type: String },
+    fundedTxHash: { type: String },
+    releasedTxHash: { type: String },
+    refundedTxHash: { type: String },
+    duration: { type: Number },
+    scheduledAt: { type: String },
+    frequency: { type: String },
   });
 
   PaymentModel = mongoose.models.Payment || mongoose.model('Payment', paymentSchema);
@@ -82,6 +91,10 @@ export async function savePayment(payment: Payment): Promise<Payment> {
   const isMongoConnected = await connectToMongo();
 
   if (isMongoConnected && PaymentModel) {
+    const existing = await PaymentModel.findOne({ id: payment.id }).lean();
+    if (existing) {
+      return existing as unknown as Payment;
+    }
     const newDoc = new PaymentModel(payment);
     await newDoc.save();
     return payment;
@@ -110,6 +123,23 @@ export async function getPayments(): Promise<Payment[]> {
   }
 }
 
+export async function getPaymentsBySender(senderAddress: string): Promise<Payment[]> {
+  const isMongoConnected = await connectToMongo();
+
+  if (isMongoConnected && PaymentModel) {
+    const docs = await PaymentModel.find({
+      senderAddress: senderAddress.toLowerCase()
+    }).sort({ createdAt: -1 }).lean();
+    return docs as unknown as Payment[];
+  } else {
+    // Local JSON DB
+    const list = readLocalDB();
+    return list.filter(p =>
+      p.senderAddress?.toLowerCase() === senderAddress.toLowerCase()
+    );
+  }
+}
+
 export async function getPaymentById(id: string): Promise<Payment | null> {
   const isMongoConnected = await connectToMongo();
 
@@ -128,17 +158,26 @@ export async function updatePaymentStatus(
   status: PaymentStatus,
   releaseDate?: string
 ): Promise<Payment | null> {
+  return updatePayment(id, { status, releaseDate });
+}
+
+export async function updatePayment(
+  id: string,
+  updates: Partial<Pick<Payment, 'status' | 'releaseDate' | 'releasedTxHash' | 'refundedTxHash'>>
+): Promise<Payment | null> {
   const isMongoConnected = await connectToMongo();
 
   if (isMongoConnected && PaymentModel) {
-    const updateData: Partial<Record<string, unknown>> = { status };
-    if (releaseDate) {
-      updateData.releaseDate = releaseDate;
-    }
+    const updateData: Partial<Record<string, unknown>> = {};
+    if (updates.status) updateData.status = updates.status;
+    if (updates.releaseDate) updateData.releaseDate = updates.releaseDate;
+    if (updates.releasedTxHash) updateData.releasedTxHash = updates.releasedTxHash;
+    if (updates.refundedTxHash) updateData.refundedTxHash = updates.refundedTxHash;
+
     const updated = await PaymentModel.findOneAndUpdate(
       { id },
       { $set: updateData },
-      { new: true }
+      { returnDocument: 'after' }
     ).lean();
     return updated as unknown as Payment | null;
   } else {
@@ -149,8 +188,7 @@ export async function updatePaymentStatus(
       if (p.id === id) {
         updatedPayment = {
           ...p,
-          status,
-          releaseDate: releaseDate || p.releaseDate
+          ...updates,
         };
         return updatedPayment;
       }

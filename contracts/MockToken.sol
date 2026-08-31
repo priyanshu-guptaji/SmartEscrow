@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+/// @title MockToken - TESTNET ONLY
+/// @notice Public mint for development/testing on Base Sepolia.
+/// @dev DO NOT deploy to mainnet - the public mint has no access control.
 contract MockToken {
     string public name = "Mock Token";
     string public symbol = "MCK";

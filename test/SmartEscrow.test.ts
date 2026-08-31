@@ -16,12 +16,12 @@ describe("SmartEscrow", function () {
   const duration = 3600;
 
   before(async function () {
-    const conn = await network.connect();
+    const conn = await network.create();
     ethers = conn.ethers;
   });
 
   beforeEach(async function () {
-    const conn = await network.connect();
+    const conn = await network.create();
     ethers = conn.ethers;
     [owner, sender, receiver, oracle, stranger, executor] = await ethers.getSigners();
 
@@ -175,7 +175,8 @@ describe("SmartEscrow", function () {
   describe("Scheduled Escrow", function () {
     it("Should create a scheduled escrow", async function () {
       const amount = ethers.parseEther("1.0");
-      const futureTimestamp = Math.floor(Date.now() / 1000) + 3600;
+      const latestBlock = await ethers.provider.getBlock("latest");
+      const futureTimestamp = latestBlock!.timestamp + 3600;
       await (await smartEscrow.connect(sender).createScheduledEscrow(
         receiver.address, ethers.ZeroAddress, amount, "Pay on date", futureTimestamp,
         { value: amount }
@@ -187,7 +188,8 @@ describe("SmartEscrow", function () {
 
     it("Should execute scheduled release after time", async function () {
       const amount = ethers.parseEther("1.0");
-      const futureTimestamp = Math.floor(Date.now() / 1000) + 3600;
+      const latestBlock = await ethers.provider.getBlock("latest");
+      const futureTimestamp = latestBlock!.timestamp + 3600;
       await (await smartEscrow.connect(sender).createScheduledEscrow(
         receiver.address, ethers.ZeroAddress, amount, "Pay on date", futureTimestamp,
         { value: amount }
@@ -204,7 +206,8 @@ describe("SmartEscrow", function () {
 
     it("Should reject scheduled release before time", async function () {
       const amount = ethers.parseEther("1.0");
-      const futureTimestamp = Math.floor(Date.now() / 1000) + 7200;
+      const latestBlock = await ethers.provider.getBlock("latest");
+      const futureTimestamp = latestBlock!.timestamp + 7200;
       await (await smartEscrow.connect(sender).createScheduledEscrow(
         receiver.address, ethers.ZeroAddress, amount, "Pay on date", futureTimestamp,
         { value: amount }
@@ -302,7 +305,8 @@ describe("SmartEscrow", function () {
       const amount = ethers.parseEther("1.0");
       await (await smartEscrow.connect(oracle).updateExecutor(executor.address)).wait();
 
-      const futureTimestamp = Math.floor(Date.now() / 1000) + 3600;
+      const latestBlock = await ethers.provider.getBlock("latest");
+      const futureTimestamp = latestBlock!.timestamp + 3600;
       await (await smartEscrow.connect(sender).createScheduledEscrow(
         receiver.address, ethers.ZeroAddress, amount, "Test", futureTimestamp,
         { value: amount }

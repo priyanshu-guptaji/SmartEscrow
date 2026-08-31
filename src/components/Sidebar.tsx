@@ -8,10 +8,9 @@ import { LockIcon, DashboardIcon, PlusIcon, HistoryIcon, InfoIcon, WalletIcon } 
 interface SidebarProps {
   walletConnected: boolean;
   connectedWallet: string | null;
-  toggleWallet: () => void;
 }
 
-export default function Sidebar({ walletConnected, connectedWallet, toggleWallet }: SidebarProps) {
+export default function Sidebar({ walletConnected, connectedWallet }: SidebarProps) {
   const pathname = usePathname();
 
   const links = [
@@ -70,7 +69,9 @@ export default function Sidebar({ walletConnected, connectedWallet, toggleWallet
           Workspace
         </div>
         {links.map((link) => {
-          const isActive = pathname === link.href;
+          const isActive = link.href === '/dashboard'
+            ? pathname === '/dashboard'
+            : pathname.startsWith(link.href);
           return (
             <Link
               key={link.name}
@@ -114,22 +115,16 @@ export default function Sidebar({ walletConnected, connectedWallet, toggleWallet
             </div>
             <p className="font-mono text-slate-400 truncate tracking-tight">{connectedWallet}</p>
             <button
-              onClick={toggleWallet}
-              className="mt-2 text-[10px] font-semibold text-rose-400 hover:text-rose-300 transition-colors"
+              className="mt-2 text-[10px] font-semibold text-slate-500 cursor-default"
+              disabled
             >
-              Disconnect
+              Use header to disconnect
             </button>
           </div>
         ) : (
           <div className="rounded-xl border border-white/5 bg-white/[0.01] p-3 text-xs text-center">
-            <p className="text-slate-400 mb-2">Wallet Disconnected</p>
-            <button
-              onClick={toggleWallet}
-              className="w-full inline-flex justify-center items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500 transition-colors shadow-md shadow-indigo-500/10"
-            >
-              <WalletIcon size={12} />
-              Connect Wallet
-            </button>
+            <p className="text-slate-400">Wallet Disconnected</p>
+            <p className="text-[10px] text-slate-600 mt-1">Connect via the header widget</p>
           </div>
         )}
       </div>

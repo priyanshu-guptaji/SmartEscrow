@@ -7,8 +7,9 @@ import Link from 'next/link';
 import { PlusIcon, LockIcon, CheckCircleIcon, ArrowUpRightIcon, WalletIcon, SparklesIcon } from '@/components/Icons';
 
 export default function DashboardPage() {
-  const { payments, metrics, walletConnected, triggerRelease, cancelPayment } = useEscrow();
+  const { payments, metrics, walletConnected } = useEscrow();
   const [filter, setFilter] = useState<'all' | 'active' | 'completed' | 'cancelled'>('all');
+  const contractAddress = process.env.NEXT_PUBLIC_SMART_ESCROW_ADDRESS;
 
   // Filter payments
   const displayedPayments = payments.filter((p) => {
@@ -98,8 +99,15 @@ export default function DashboardPage() {
               {walletConnected ? metrics.connectedWallet : 'Disconnected'}
             </h3>
             <p className="text-[10px] text-slate-400">
-              Network: <span className="font-semibold text-indigo-400">{walletConnected ? 'Arbitrum One' : 'None'}</span>
+              Network: <span className="font-semibold text-indigo-400">{walletConnected ? 'Base Sepolia' : 'None'}</span>
             </p>
+            {walletConnected && (
+              <p className="text-[10px] text-slate-400">
+                Contract: <span className={`font-semibold ${contractAddress ? 'text-emerald-400' : 'text-amber-400'}`}>
+                  {contractAddress ? 'Deployed' : 'Not Deployed'}
+                </span>
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -146,8 +154,6 @@ export default function DashboardPage() {
                 <PaymentCard
                   key={payment.id}
                   payment={payment}
-                  onRelease={triggerRelease}
-                  onCancel={cancelPayment}
                 />
               ))}
             </div>
@@ -163,7 +169,7 @@ export default function DashboardPage() {
               Quick Sandbox Actions
             </h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              This dashboard is a high-fidelity visual simulator. You can connect or disconnect the mock wallet at the top, cancel active escrows, or release payouts immediately.
+              Connect your wallet to create real escrow payments on Base Sepolia. Release funds when conditions are met, or refund if deadlines pass.
             </p>
             <div className="space-y-2">
               <Link
@@ -174,7 +180,7 @@ export default function DashboardPage() {
                 <ArrowUpRightIcon size={12} className="text-slate-500 group-hover:text-indigo-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
               </Link>
               <Link
-                href="/dashboard/payment-history"
+                href="/dashboard/history"
                 className="flex items-center justify-between rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] p-3 text-xs font-semibold text-slate-300 transition-all group"
               >
                 <span>View Transaction Logs</span>
@@ -191,16 +197,16 @@ export default function DashboardPage() {
             </h3>
             <div className="space-y-3 font-mono text-[10px] text-slate-400">
               <div className="pb-2.5 border-b border-white/5">
-                <span className="text-emerald-400">[ORACLE]</span> Check complete: GitHub PR merged for `pay_001`. Status updated.
+                <span className="text-emerald-400">[ORACLE]</span> Condition check: GitHub PR merged for escrow. Awaiting verification.
               </div>
               <div className="pb-2.5 border-b border-white/5">
-                <span className="text-indigo-400">[CONTRACT]</span> Locked 1.5 ETH from creator `0x71C...` for `pay_005`.
+                <span className="text-indigo-400">[CONTRACT]</span> Locked 1.25 ETH in escrow for Alice Vance on Base Sepolia.
               </div>
               <div className="pb-2.5 border-b border-white/5">
-                <span className="text-slate-500">[WEB3]</span> Gas estimation success: 24,052 gwei for deploy.
+                <span className="text-slate-500">[WEB3]</span> Gas estimation success: deploy escrow contract.
               </div>
               <div>
-                <span className="text-amber-400">[PENDING]</span> Contract `pay_002` deployed. Awaiting oracle audit trigger.
+                <span className="text-amber-400">[PENDING]</span> 500 USDC escrow active. Awaiting oracle audit trigger.
               </div>
             </div>
           </div>

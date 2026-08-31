@@ -24,23 +24,27 @@ export default function AboutPage() {
   const milestones = [
     {
       phase: 'Phase 1',
-      title: 'Core Architecture (Current)',
-      description: 'Designing high-fidelity prototypes, frontend interface components, user flow mapping, and mock state configurations.',
+      title: 'Core Architecture',
+      description: 'High-fidelity prototypes, frontend interface components, user flow mapping, and mock state configurations.',
+      done: true,
     },
     {
       phase: 'Phase 2',
       title: 'AI Parsing & LLM Integration',
-      description: 'Implementing LLM parsing APIs to translate natural language prompts into standardized JSON schemas containing release rules.',
+      description: 'Gemini AI-powered natural language parser with rule-based fallback, translating plain English into structured escrow parameters.',
+      done: true,
     },
     {
       phase: 'Phase 3',
       title: 'EVM Smart Contract Deployment',
-      description: 'Writing, testing, and deploying audited Solidity smart contracts on testnets (Arbitrum, Base, Sepolia) and implementing WalletConnect.',
+      description: 'Solidity smart contracts with conditional, scheduled, recurring, and NFT-conditional escrows. Deployed to Base Sepolia with full test suite.',
+      done: true,
     },
     {
       phase: 'Phase 4',
       title: 'Oracle Consensus & Mainnet',
-      description: 'Integrating Chainlink Functions and standard API oracles to verify outcomes, followed by official mainnet deployment.',
+      description: 'Integrating Chainlink Functions and standard API oracles to verify conditions, followed by mainnet deployment.',
+      done: false,
     },
   ];
 
@@ -117,16 +121,20 @@ export default function AboutPage() {
             <div key={idx} className="relative">
               {/* Bullet Node */}
               <span className={`absolute -left-[31px] top-1.5 flex h-4 w-4 items-center justify-center rounded-full border-2 bg-[#070a13] ${
-                idx === 0 
-                  ? 'border-indigo-500 shadow-sm shadow-indigo-500/50' 
-                  : 'border-white/20'
+                milestone.done
+                  ? 'border-emerald-500 shadow-sm shadow-emerald-500/50'
+                  : idx === milestones.findIndex(m => !m.done)
+                    ? 'border-indigo-500 shadow-sm shadow-indigo-500/50'
+                    : 'border-white/20'
               }`} />
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
-                    idx === 0 
-                      ? 'bg-indigo-500/10 text-indigo-400' 
-                      : 'bg-white/5 text-slate-400'
+                    milestone.done
+                      ? 'bg-emerald-500/10 text-emerald-400'
+                      : idx === milestones.findIndex(m => !m.done)
+                        ? 'bg-indigo-500/10 text-indigo-400'
+                        : 'bg-white/5 text-slate-400'
                   }`}>
                     {milestone.phase}
                   </span>

@@ -13,7 +13,7 @@ import PaymentReview from '@/components/PaymentReview';
 const PRESET_PROMPTS = [
   "Pay Alice Vance 1.25 ETH if she finishes the website frontend layout by next Monday.",
   "Escrow 500 USDC for Bob Builder. Release when the solidity smart contract audit passes with 0 critical issues.",
-  "Send Charlie Dev 10 SOL if BTC price hits $100k according to Chainlink oracle.",
+  "Send Charlie Dev 0.5 ETH when test coverage hits 100%.",
   "Pay Rahul 10 USDC after he sends me NFT #25.",
 ];
 
@@ -23,7 +23,14 @@ export default function CreatePaymentPage() {
   const router = useRouter();
   const { addPayment } = useEscrow();
   const { isConnected } = useAccount();
-  const { createEscrow, txState, txHash, error: txError, resetTxState } = useEscrowContract();
+  const {
+    createEscrow,
+    createScheduledEscrow,
+    createRecurringEscrow,
+    createNFTConditionalEscrow,
+    txState, txHash, error: txError, resetTxState,
+    escrowId: contractEscrowId,
+  } = useEscrowContract();
   const { resolvedAddress, isResolving, resolveError, resolveENS } = useENS();
 
   const [step, setStep] = useState<Step>('input');
@@ -41,6 +48,16 @@ export default function CreatePaymentPage() {
   const [condition, setCondition] = useState('');
   const [description, setDescription] = useState('');
   const [duration, setDuration] = useState('86400');
+
+  // Scheduled payment fields
+  const [scheduledDate, setScheduledDate] = useState('');
+
+  // Recurring payment fields
+  const [intervalSeconds, setIntervalSeconds] = useState('2592000'); // 30 days default
+
+  // NFT conditional fields
+  const [nftContract, setNftContract] = useState('');
+  const [nftTokenId, setNftTokenId] = useState('');
 
   const [successMsg, setSuccessMsg] = useState('');
 
@@ -98,15 +115,61 @@ export default function CreatePaymentPage() {
     if (!receiverName || !receiverAddress || !amount || !condition) return;
 
     const finalAddress = resolvedAddress || receiverAddress;
+    const durationNum = parseInt(duration) || 86400;
 
     try {
-      const hash = await createEscrow({
-        receiver: finalAddress as `0x${string}`,
-        token,
-        amount,
-        condition,
-        duration: parseInt(duration) || 86400,
-      });
+      let hash: `0x${string}`;
+
+      switch (paymentType) {
+        case 'scheduled': {
+          if (!scheduledDate) throw new Error('Scheduled date is required');
+          const releaseTimestamp = Math.floor(new Date(scheduledDate).getTime() / 1000);
+          hash = await createScheduledEscrow({
+            receiver: finalAddress as `0x${string}`,
+            token,
+            amount,
+            condition,
+            duration: durationNum,
+            releaseTimestamp,
+          });
+          break;
+        }
+        case 'recurring': {
+          const interval = parseInt(intervalSeconds) || 2592000;
+          hash = await createRecurringEscrow({
+            receiver: finalAddress as `0x${string}`,
+            token,
+            amount,
+            condition,
+            duration: durationNum,
+            interval,
+          });
+          break;
+        }
+        case 'nft-conditional': {
+          if (!nftContract) throw new Error('NFT contract address is required');
+          hash = await createNFTConditionalEscrow({
+            receiver: finalAddress as `0x${string}`,
+            token,
+            amount,
+            condition,
+            duration: durationNum,
+            nftContract: nftContract as `0x${string}`,
+            tokenId: parseInt(nftTokenId) || 0,
+          });
+          break;
+        }
+        default: {
+          hash = await createEscrow({
+            receiver: finalAddress as `0x${string}`,
+            token,
+            amount,
+            condition,
+            duration: durationNum,
+          });
+          break;
+        }
+      }
 
       await addPayment({
         receiverName,
@@ -117,8 +180,9 @@ export default function CreatePaymentPage() {
         condition,
         description: description || `${receiverName} Payment`,
         naturalLanguagePrompt: nlInput || undefined,
-        duration: parseInt(duration) || 86400,
+        duration: durationNum,
         txHash: hash,
+        contractEscrowId: contractEscrowId ?? undefined,
       });
 
       setSuccessMsg('Escrow smart contract deployed successfully!');
@@ -128,11 +192,14 @@ export default function CreatePaymentPage() {
     }
   };
 
+  const contractAddress = process.env.NEXT_PUBLIC_SMART_ESCROW_ADDRESS;
+  const isContractDeployed = !!contractAddress;
+
   return (
     <div className="space-y-8 max-w-3xl mx-auto">
       <div>
         <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
-          {step === 'input' ? 'Create Conditional Payment' : 'Review & Confirm'}
+          {step === 'input' ? 'Create Escrow Payment' : 'Review & Confirm'}
         </h1>
         <p className="text-sm text-slate-400">
           {step === 'input'
@@ -140,6 +207,34 @@ export default function CreatePaymentPage() {
             : 'Review payment details before confirming the blockchain transaction.'}
         </p>
       </div>
+
+      {!isContractDeployed && (
+        <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4 text-xs text-amber-400">
+          <p className="font-semibold mb-1">SmartEscrow contract not deployed</p>
+          <p className="text-amber-400/80">
+            Set <code className="font-mono bg-amber-500/10 px-1 rounded">NEXT_PUBLIC_SMART_ESCROW_ADDRESS</code> in your
+            .env.local after deploying the contract to Base Sepolia. On-chain escrow creation is unavailable until deployment.
+          </p>
+        </div>
+      )}
+
+      {paymentType === 'scheduled' && (
+        <div className="rounded-2xl border border-indigo-500/20 bg-indigo-500/10 p-4 text-xs text-indigo-400">
+          <p className="font-semibold mb-1">Scheduled Payment Notice</p>
+          <p className="text-indigo-400/80">
+            Funds are locked in the smart contract until the release time. An executor address (set to the deployer by default) must call <code className="font-mono bg-indigo-500/10 px-1 rounded">executeScheduledRelease</code> after the scheduled time to release funds.
+          </p>
+        </div>
+      )}
+
+      {paymentType === 'recurring' && (
+        <div className="rounded-2xl border border-indigo-500/20 bg-indigo-500/10 p-4 text-xs text-indigo-400">
+          <p className="font-semibold mb-1">Recurring Payment Notice</p>
+          <p className="text-indigo-400/80">
+            Each payout requires the executor to call <code className="font-mono bg-indigo-500/10 px-1 rounded">executeRecurringPayout</code> after each interval elapses. The executor can be the deployer wallet or a designated automation service.
+          </p>
+        </div>
+      )}
 
       {successMsg && (
         <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-sm text-emerald-400 text-center flex items-center justify-center gap-2">
@@ -327,6 +422,7 @@ export default function CreatePaymentPage() {
                     className="w-full rounded-xl bg-slate-950 border border-white/10 px-4 py-2.5 text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
                   >
                     <option value="conditional">Conditional Release (Oracles)</option>
+                    <option value="nft-conditional">NFT Conditional Release</option>
                     <option value="scheduled">Scheduled Date Payout</option>
                     <option value="recurring">Recurring Monthly Subscription</option>
                   </select>
@@ -342,6 +438,60 @@ export default function CreatePaymentPage() {
                   />
                   <p className="text-[10px] text-slate-600">86400 = 1 day, 604800 = 7 days</p>
                 </div>
+
+                {/* Scheduled payment: date picker */}
+                {paymentType === 'scheduled' && (
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-400">Release Date &amp; Time</label>
+                    <input
+                      type="datetime-local" required value={scheduledDate}
+                      onChange={(e) => setScheduledDate(e.target.value)}
+                      className="w-full rounded-xl bg-slate-950 border border-white/10 px-4 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 font-mono"
+                    />
+                    <p className="text-[10px] text-slate-600">Funds release automatically at this time (requires executor)</p>
+                  </div>
+                )}
+
+                {/* Recurring payment: interval */}
+                {paymentType === 'recurring' && (
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-400">Payout Interval (seconds)</label>
+                    <select
+                      value={intervalSeconds} onChange={(e) => setIntervalSeconds(e.target.value)}
+                      className="w-full rounded-xl bg-slate-950 border border-white/10 px-4 py-2.5 text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
+                    >
+                      <option value="86400">Daily (86400s)</option>
+                      <option value="604800">Weekly (604800s)</option>
+                      <option value="2592000">Monthly (2592000s)</option>
+                      <option value="7776000">Quarterly (7776000s)</option>
+                    </select>
+                    <p className="text-[10px] text-slate-600">Requires executor to trigger each payout</p>
+                  </div>
+                )}
+
+                {/* NFT conditional: contract + tokenId */}
+                {paymentType === 'nft-conditional' && (
+                  <>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-slate-400 font-mono">NFT Contract Address</label>
+                      <input
+                        type="text" required value={nftContract}
+                        onChange={(e) => setNftContract(e.target.value)}
+                        placeholder="0x... (ERC-721 contract)"
+                        className="w-full rounded-xl bg-slate-950 border border-white/10 px-4 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 font-mono"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-slate-400">NFT Token ID</label>
+                      <input
+                        type="number" required value={nftTokenId}
+                        onChange={(e) => setNftTokenId(e.target.value)}
+                        placeholder="25"
+                        className="w-full rounded-xl bg-slate-950 border border-white/10 px-4 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 font-mono"
+                      />
+                    </div>
+                  </>
+                )}
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-slate-400">Reference Description</label>
