@@ -77,12 +77,33 @@ export async function POST(request: Request) {
       );
     }
 
+    // Validate scheduled payment requires scheduledAt
+    if (paymentData.type === "scheduled" && !paymentData.scheduledAt) {
+      return NextResponse.json(
+        { error: "Scheduled payments require a scheduledAt date" },
+        { status: 400 }
+      );
+    }
+
+    // Validate recurring payment requires frequency
+    if (paymentData.type === "recurring" && !paymentData.frequency) {
+      return NextResponse.json(
+        { error: "Recurring payments require a frequency" },
+        { status: 400 }
+      );
+    }
+
+    // Normalize senderAddress to lowercase
+    const normalizedSender = walletAddress.toLowerCase();
+    const normalizedReceiver = paymentData.receiverAddress?.toLowerCase() || "";
+
     // Enforce sender address from authenticated wallet (never trust frontend)
     const newPayment: Payment = {
       ...paymentData,
-      senderAddress: walletAddress,
+      senderAddress: normalizedSender,
+      receiverAddress: normalizedReceiver,
       id: paymentData.id || `pay_${crypto.randomUUID()}`,
-      status: paymentData.status || "active",
+      status: paymentData.status || "pending",
       createdAt: paymentData.createdAt || new Date().toISOString(),
     };
 
@@ -106,10 +127,16 @@ export async function PATCH(request: Request) {
       );
     }
 
-    const { id, status, releaseDate, releasedTxHash, refundedTxHash } = await request.json();
+    const { id, status, releaseDate, releasedTxHash, refundedTxHash, txHash, fundedTxHash, blockNumber, contractEscrowId } = await request.json();
 
     if (!id || !status) {
       return NextResponse.json({ error: "ID and status are required fields" }, { status: 400 });
+    }
+
+    // Validate status
+    const validStatuses = ["pending", "active", "completed", "cancelled", "refunded", "failed"];
+    if (!validStatuses.includes(status)) {
+      return NextResponse.json({ error: "Invalid status value" }, { status: 400 });
     }
 
     // Verify the payment belongs to this wallet
@@ -130,6 +157,10 @@ export async function PATCH(request: Request) {
       releaseDate,
       releasedTxHash,
       refundedTxHash,
+      txHash,
+      fundedTxHash,
+      blockNumber,
+      contractEscrowId,
     });
 
     if (!updated) {

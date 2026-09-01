@@ -20,18 +20,19 @@ if (MONGODB_URI) {
     receiverAddress: { type: String, required: true },
     amount: { type: Number, required: true },
     token: { type: String, required: true },
-    type: { type: String, required: true },
-    status: { type: String, required: true },
+    type: { type: String, required: true, index: true },
+    status: { type: String, required: true, index: true },
     condition: { type: String, required: true },
     createdAt: { type: String, required: true },
     releaseDate: { type: String },
     description: { type: String },
     naturalLanguagePrompt: { type: String },
-    contractEscrowId: { type: Number },
+    contractEscrowId: { type: Number, sparse: true, index: true },
     txHash: { type: String },
     fundedTxHash: { type: String },
     releasedTxHash: { type: String },
     refundedTxHash: { type: String },
+    blockNumber: { type: Number },
     duration: { type: Number },
     scheduledAt: { type: String },
     frequency: { type: String },
@@ -163,16 +164,20 @@ export async function updatePaymentStatus(
 
 export async function updatePayment(
   id: string,
-  updates: Partial<Pick<Payment, 'status' | 'releaseDate' | 'releasedTxHash' | 'refundedTxHash'>>
+  updates: Partial<Pick<Payment, 'status' | 'releaseDate' | 'releasedTxHash' | 'refundedTxHash' | 'txHash' | 'fundedTxHash' | 'blockNumber' | 'contractEscrowId'>>
 ): Promise<Payment | null> {
   const isMongoConnected = await connectToMongo();
 
   if (isMongoConnected && PaymentModel) {
     const updateData: Partial<Record<string, unknown>> = {};
-    if (updates.status) updateData.status = updates.status;
-    if (updates.releaseDate) updateData.releaseDate = updates.releaseDate;
-    if (updates.releasedTxHash) updateData.releasedTxHash = updates.releasedTxHash;
-    if (updates.refundedTxHash) updateData.refundedTxHash = updates.refundedTxHash;
+    if (updates.status !== undefined) updateData.status = updates.status;
+    if (updates.releaseDate !== undefined) updateData.releaseDate = updates.releaseDate;
+    if (updates.releasedTxHash !== undefined) updateData.releasedTxHash = updates.releasedTxHash;
+    if (updates.refundedTxHash !== undefined) updateData.refundedTxHash = updates.refundedTxHash;
+    if (updates.txHash !== undefined) updateData.txHash = updates.txHash;
+    if (updates.fundedTxHash !== undefined) updateData.fundedTxHash = updates.fundedTxHash;
+    if (updates.blockNumber !== undefined) updateData.blockNumber = updates.blockNumber;
+    if (updates.contractEscrowId !== undefined) updateData.contractEscrowId = updates.contractEscrowId;
 
     const updated = await PaymentModel.findOneAndUpdate(
       { id },

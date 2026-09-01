@@ -1,7 +1,20 @@
 import { config } from "dotenv";
+import { readFileSync, writeFileSync } from "fs";
 config({ path: ".env.local" });
 
 import { network } from "hardhat";
+
+function updateEnvLocal(address: string) {
+  const envPath = ".env.local";
+  let content = readFileSync(envPath, "utf-8");
+  const regex = /^NEXT_PUBLIC_SMART_ESCROW_ADDRESS=.*/m;
+  if (regex.test(content)) {
+    content = content.replace(regex, `NEXT_PUBLIC_SMART_ESCROW_ADDRESS=${address}`);
+  } else {
+    content += `\nNEXT_PUBLIC_SMART_ESCROW_ADDRESS=${address}\n`;
+  }
+  writeFileSync(envPath, content, "utf-8");
+}
 
 async function main() {
   // --- Preflight: validate environment ---
@@ -77,11 +90,11 @@ async function main() {
   console.log("Transaction hash:    " + (deployReceipt?.hash ?? "unknown"));
   console.log("Network:             Base Sepolia");
   console.log("Chain ID:            84532");
+  // Auto-write the contract address to .env.local
+  updateEnvLocal(contractAddress);
+  console.log("Updated .env.local with NEXT_PUBLIC_SMART_ESCROW_ADDRESS=" + contractAddress);
   console.log("");
-  console.log("Next steps:");
-  console.log("  Add to .env.local:");
-  console.log("    NEXT_PUBLIC_SMART_ESCROW_ADDRESS=" + contractAddress);
-  console.log("  Then restart the dev server.");
+  console.log("Restart the dev server for changes to take effect.");
 }
 
 main().catch((error) => {

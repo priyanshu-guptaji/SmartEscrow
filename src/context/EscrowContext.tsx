@@ -11,6 +11,7 @@ interface EscrowContextType {
   walletConnected: boolean;
   walletAddress: string | null;
   addPayment: (payment: Omit<Payment, 'id' | 'createdAt' | 'status' | 'senderAddress'>) => Promise<Payment>;
+  updatePayment: (id: string, updates: Partial<Pick<Payment, 'status' | 'releaseDate' | 'releasedTxHash' | 'refundedTxHash' | 'txHash' | 'fundedTxHash' | 'blockNumber' | 'contractEscrowId'>>) => Promise<Payment | null>;
   triggerRelease: (id: string) => Promise<void>;
   cancelPayment: (id: string) => Promise<void>;
   refreshPayments: () => Promise<void>;
@@ -156,7 +157,7 @@ export function EscrowProvider({ children }: { children: React.ReactNode }) {
       senderAddress: address || '',
       id: `pay_${crypto.randomUUID()}`,
       createdAt: new Date().toISOString(),
-      status: 'active',
+      status: 'pending',
     };
 
     // Optimistic update
@@ -179,6 +180,52 @@ export function EscrowProvider({ children }: { children: React.ReactNode }) {
     }
 
     return newPayment;
+  };
+
+  const updatePayment = async (
+    id: string,
+    updates: Partial<Pick<Payment, 'status' | 'releaseDate' | 'releasedTxHash' | 'refundedTxHash' | 'txHash' | 'fundedTxHash' | 'blockNumber' | 'contractEscrowId'>>
+  ): Promise<Payment | null> => {
+    // Optimistic update
+    let updatedPayment: Payment | null = null;
+    setPayments((prev) =>
+      prev.map((p) => {
+        if (p.id === id) {
+          updatedPayment = { ...p, ...updates };
+          return updatedPayment;
+        }
+        return p;
+      })
+    );
+
+    try {
+      const authHeaders = await getCachedAuthHeaders();
+
+      if (!authHeaders) {
+        console.error('Cannot update payment: wallet authentication failed');
+        return null;
+      }
+
+      const res = await fetch('/api/payments', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders,
+        },
+        body: JSON.stringify({ id, ...updates }),
+      });
+
+      if (!res.ok) {
+        console.error('PATCH failed:', res.status, await res.text());
+        return null;
+      }
+
+      const { data } = await res.json();
+      return data as Payment;
+    } catch (e) {
+      console.error('Failed to update payment:', e);
+      return null;
+    }
   };
 
   const triggerRelease = async (id: string) => {
@@ -253,7 +300,7 @@ export function EscrowProvider({ children }: { children: React.ReactNode }) {
   ).length;
   const completedTransactionsCount = payments.filter((p) => p.status === 'completed').length;
   const totalPaymentsVolume = payments
-    .filter((p) => p.status === 'active' || p.status === 'completed')
+    .filter((p) => p.status === 'active' || p.status === 'completed' || p.status === 'pending')
     .reduce((acc, p) => {
       const price = TOKEN_PRICES[p.token] || 1;
       return acc + p.amount * price;
@@ -275,6 +322,7 @@ export function EscrowProvider({ children }: { children: React.ReactNode }) {
         walletConnected: isConnected,
         walletAddress: address ?? null,
         addPayment,
+        updatePayment,
         triggerRelease,
         cancelPayment,
         refreshPayments,

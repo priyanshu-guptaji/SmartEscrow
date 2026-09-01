@@ -21,7 +21,7 @@ type Step = 'input' | 'review';
 
 export default function CreatePaymentPage() {
   const router = useRouter();
-  const { addPayment } = useEscrow();
+  const { addPayment, updatePayment } = useEscrow();
   const { isConnected } = useAccount();
   const {
     createEscrow,
@@ -34,11 +34,11 @@ export default function CreatePaymentPage() {
   const { resolvedAddress, isResolving, resolveError, resolveENS } = useENS();
 
   const [step, setStep] = useState<Step>('input');
-  const [activeTab, setActiveTab] = useState<'ai' | 'manual'>('ai');
+  const [activeTab, setActiveTab] = useState<'nl' | 'manual'>('nl');
   const [nlInput, setNlInput] = useState('');
   const [isParsing, setIsParsing] = useState(false);
   const [parseError, setParseError] = useState('');
-  const [usedAI, setUsedAI] = useState(false);
+  const [usedAutoParse, setUsedAutoParse] = useState(false);
 
   const [receiverName, setReceiverName] = useState('');
   const [receiverAddress, setReceiverAddress] = useState('');
@@ -61,7 +61,7 @@ export default function CreatePaymentPage() {
 
   const [successMsg, setSuccessMsg] = useState('');
 
-  const handleAIParse = async (textOverride?: string) => {
+  const handleNLParse = async (textOverride?: string) => {
     const text = textOverride ?? nlInput;
     if (!text.trim()) return;
 
@@ -89,7 +89,7 @@ export default function CreatePaymentPage() {
       setPaymentType((data.type as PaymentType) ?? 'conditional');
       setCondition(data.condition ?? '');
       setDescription(data.description ?? `${data.receiverName ?? 'Recipient'} payment escrow`);
-      setUsedAI(!mock);
+      setUsedAutoParse(!mock);
       setActiveTab('manual');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Failed to parse. Please try again or fill manually.";
@@ -117,7 +117,31 @@ export default function CreatePaymentPage() {
     const finalAddress = resolvedAddress || receiverAddress;
     const durationNum = parseInt(duration) || 86400;
 
+    // Map interval seconds to frequency label
+    const frequencyMap: Record<string, string> = {
+      '86400': 'daily',
+      '604800': 'weekly',
+      '2592000': 'monthly',
+      '7776000': 'quarterly',
+    };
+
     try {
+      // Step 1: Create payment record in database with 'pending' status
+      const newPayment = await addPayment({
+        receiverName,
+        receiverAddress: finalAddress,
+        amount: parseFloat(amount),
+        token,
+        type: paymentType,
+        condition,
+        description: description || `${receiverName} Payment`,
+        naturalLanguagePrompt: nlInput || undefined,
+        duration: durationNum,
+        scheduledAt: paymentType === 'scheduled' ? scheduledDate : undefined,
+        frequency: paymentType === 'recurring' ? (frequencyMap[intervalSeconds] || 'monthly') : undefined,
+      });
+
+      // Step 2: Call smart contract to create escrow on-chain
       let hash: `0x${string}`;
 
       switch (paymentType) {
@@ -171,16 +195,9 @@ export default function CreatePaymentPage() {
         }
       }
 
-      await addPayment({
-        receiverName,
-        receiverAddress: finalAddress,
-        amount: parseFloat(amount),
-        token,
-        type: paymentType,
-        condition,
-        description: description || `${receiverName} Payment`,
-        naturalLanguagePrompt: nlInput || undefined,
-        duration: durationNum,
+      // Step 3: Update payment record with blockchain data and set status to 'active'
+      await updatePayment(newPayment.id, {
+        status: 'active',
         txHash: hash,
         contractEscrowId: contractEscrowId ?? undefined,
       });
@@ -189,6 +206,7 @@ export default function CreatePaymentPage() {
       setTimeout(() => router.push('/dashboard/payments'), 2000);
     } catch {
       // Error is captured by useEscrowContract
+      // If blockchain failed, the DB record stays in 'pending' status
     }
   };
 
@@ -253,9 +271,9 @@ export default function CreatePaymentPage() {
         <>
           <div className="flex border-b border-slate-200 gap-4 sm:gap-6 overflow-x-auto">
             <button
-              onClick={() => setActiveTab('ai')}
+              onClick={() => setActiveTab('nl')}
               className={`pb-3 text-sm font-semibold transition-all relative whitespace-nowrap ${
-                activeTab === 'ai'
+                activeTab === 'nl'
                   ? 'text-[#0a4d94] border-b-2 border-[#0a4d94]'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
@@ -280,7 +298,7 @@ export default function CreatePaymentPage() {
             </button>
           </div>
 
-          {activeTab === 'ai' && (
+          {activeTab === 'nl' && (
             <div className="space-y-6">
               <div className="surface-card rounded-lg p-6 space-y-4">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -289,12 +307,12 @@ export default function CreatePaymentPage() {
                     Describe Agreement Terms
                   </h3>
                   <span className="text-xs font-semibold text-[#0a4d94] bg-[#ebf3fb] border border-blue-200 px-2 py-0.5 rounded">
-                    Gemini AI
+                    Auto Parser
                   </span>
                 </div>
 
                 <p className="text-xs text-slate-600 leading-relaxed font-normal">
-                  Describe in plain English: who gets paid, how much crypto, which token, and the exact release trigger. The AI will extract structured parameters automatically.
+                  Describe in plain English: who gets paid, how much crypto, which token, and the exact release trigger. Structured parameters will be extracted automatically.
                 </p>
 
                 <textarea
@@ -307,7 +325,7 @@ export default function CreatePaymentPage() {
 
                 <div className="flex justify-end pt-2">
                   <button
-                    onClick={() => handleAIParse()}
+                    onClick={() => handleNLParse()}
                     disabled={isParsing || !nlInput.trim()}
                     className="btn-primary flex h-10 items-center justify-center gap-2 rounded-md px-6 text-xs font-semibold shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -334,7 +352,7 @@ export default function CreatePaymentPage() {
                   {PRESET_PROMPTS.map((preset, idx) => (
                     <button
                       key={idx}
-                      onClick={() => handleAIParse(preset)}
+                      onClick={() => handleNLParse(preset)}
                       disabled={isParsing}
                       className="w-full text-left rounded-md bg-white hover:bg-slate-50 border border-slate-200 p-3 text-xs text-slate-700 hover:text-slate-900 transition-all flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs"
                     >
@@ -356,10 +374,10 @@ export default function CreatePaymentPage() {
                   <h3 className="text-sm font-bold text-slate-900">Escrow Parameters</h3>
                   <p className="text-xs text-slate-500 font-normal">Review extracted parameters or configure contract inputs directly.</p>
                 </div>
-                {usedAI && (
+                {usedAutoParse && (
                   <span className="text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded flex items-center gap-1">
                     <CheckCircleIcon size={10} />
-                    AI Parsed
+                    Auto Parsed
                   </span>
                 )}
               </div>
@@ -517,7 +535,7 @@ export default function CreatePaymentPage() {
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between pt-4 border-t border-slate-100 gap-3">
                 <button
                   type="button"
-                  onClick={() => setActiveTab('ai')}
+                  onClick={() => setActiveTab('nl')}
                   className="text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors text-left"
                 >
                   Back to Prompt Input

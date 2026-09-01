@@ -1,6 +1,6 @@
 export type PaymentType = 'conditional' | 'scheduled' | 'recurring' | 'nft-conditional';
 
-export type PaymentStatus = 'pending' | 'active' | 'completed' | 'cancelled';
+export type PaymentStatus = 'pending' | 'active' | 'completed' | 'cancelled' | 'refunded' | 'failed';
 
 export type TokenSymbol = 'ETH' | 'USDC' | 'USDT';
 
@@ -23,6 +23,7 @@ export interface Payment {
   fundedTxHash?: string;
   releasedTxHash?: string;
   refundedTxHash?: string;
+  blockNumber?: number;
   duration?: number;
   scheduledAt?: string;
   frequency?: string;

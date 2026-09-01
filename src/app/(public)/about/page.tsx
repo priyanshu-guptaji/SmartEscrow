@@ -43,8 +43,8 @@ export default function AboutPage() {
     {
       phase: 'Phase 4',
       title: 'Automated Oracle Network',
-      description: 'Chainlink Functions integration and automated keeper triggers for milestone-based release.',
-      done: false,
+      description: 'Event listener and scheduler for automated payout execution, with blockchain event synchronization to the database.',
+      done: true,
     },
   ];
 

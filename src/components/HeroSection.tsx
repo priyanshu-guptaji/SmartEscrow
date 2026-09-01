@@ -128,7 +128,7 @@ export default function HeroSection() {
             </div>
           </div>
 
-          {/* Hero Right Column - Simulated AI Parsing Interaction */}
+          {/* Hero Right Column - Simulated Natural Language Parsing Interaction */}
           <div className="lg:col-span-6 flex flex-col justify-center">
             <div className="surface-card-elevated w-full max-w-xl mx-auto rounded-xl p-6 relative">
               

@@ -13,6 +13,8 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; icon: React.Reac
   completed: { bg: 'bg-emerald-50 border-emerald-200', text: 'text-emerald-800', icon: <CheckCircleIcon size={12} /> },
   cancelled: { bg: 'bg-rose-50 border-rose-200', text: 'text-rose-800', icon: <CancelIcon size={12} /> },
   pending: { bg: 'bg-amber-50 border-amber-200', text: 'text-amber-800', icon: <ClockIcon size={12} /> },
+  refunded: { bg: 'bg-rose-50 border-rose-200', text: 'text-rose-800', icon: <CancelIcon size={12} /> },
+  failed: { bg: 'bg-slate-100 border-slate-300', text: 'text-slate-700', icon: <CancelIcon size={12} /> },
 };
 
 const EXPLORER_BASE = 'https://sepolia.basescan.org/tx/';
@@ -196,12 +198,12 @@ export default function PaymentDetailPage() {
           </div>
           <div className="space-y-1">
             <p className="text-slate-500 font-medium">Sender</p>
-            <p className="text-slate-700 font-mono text-[11px]">Connected wallet</p>
+            <p className="text-slate-900 font-mono text-[11px] break-all">{payment.senderAddress}</p>
           </div>
           <div className="space-y-1">
             <p className="text-slate-500 font-medium">Recipient</p>
             <p className="text-slate-900 font-semibold">{payment.receiverName}</p>
-            <p className="text-[11px] text-slate-500 font-mono">{payment.receiverAddress}</p>
+            <p className="text-[11px] text-slate-500 font-mono break-all">{payment.receiverAddress}</p>
           </div>
           <div className="space-y-1">
             <p className="text-slate-500 font-medium">Network</p>
@@ -211,6 +213,24 @@ export default function PaymentDetailPage() {
             <p className="text-slate-500 font-medium">Created</p>
             <p className="text-slate-700">{formatDate(payment.createdAt)}</p>
           </div>
+          {payment.duration && (
+            <div className="space-y-1">
+              <p className="text-slate-500 font-medium">Duration</p>
+              <p className="text-slate-900 font-mono">{payment.duration}s ({Math.round(payment.duration / 86400)} day{payment.duration >= 172800 ? 's' : ''})</p>
+            </div>
+          )}
+          {payment.type === 'scheduled' && payment.scheduledAt && (
+            <div className="space-y-1">
+              <p className="text-slate-500 font-medium">Scheduled Release</p>
+              <p className="text-slate-900">{formatDate(payment.scheduledAt)}</p>
+            </div>
+          )}
+          {payment.type === 'recurring' && payment.frequency && (
+            <div className="space-y-1">
+              <p className="text-slate-500 font-medium">Payout Frequency</p>
+              <p className="text-slate-900 capitalize font-semibold">{payment.frequency}</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -242,6 +262,14 @@ export default function PaymentDetailPage() {
               <span><span className="text-amber-700 font-semibold">[DEPOSIT]</span> Funds locked in smart contract</span>
               <a href={`${EXPLORER_BASE}${payment.txHash}`} target="_blank" rel="noopener noreferrer" className="text-[#0a4d94] truncate max-w-[200px] hover:underline text-[11px]">
                 {payment.txHash.slice(0, 12)}...
+              </a>
+            </div>
+          )}
+          {payment.fundedTxHash && (
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 pb-2 border-b border-slate-100">
+              <span><span className="text-blue-700 font-semibold">[FUNDED]</span> ERC20 token approved for escrow</span>
+              <a href={`${EXPLORER_BASE}${payment.fundedTxHash}`} target="_blank" rel="noopener noreferrer" className="text-[#0a4d94] truncate max-w-[200px] hover:underline text-[11px]">
+                {payment.fundedTxHash.slice(0, 12)}...
               </a>
             </div>
           )}

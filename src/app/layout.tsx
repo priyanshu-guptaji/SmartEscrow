@@ -3,7 +3,7 @@ import "./globals.css";
 import { Web3Provider } from "@/context/Web3Provider";
 
 export const metadata: Metadata = {
-  title: "SmartEscrow | AI-Powered Web3 Conditional Payments",
+  title: "SmartEscrow | Intelligent Web3 Conditional Payments",
   description: "Create secure, conditional Web3 cryptocurrency payments using natural language. Fast, decentralized, and trustless escrows.",
 };
 

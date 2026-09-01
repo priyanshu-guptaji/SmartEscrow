@@ -33,23 +33,26 @@ async function connectMongo(): Promise<boolean> {
 
     const schema = new mongoose.Schema({
       id: { type: String, required: true, unique: true },
-      senderAddress: { type: String, required: true },
+      senderAddress: { type: String, required: true, index: true },
       receiverName: { type: String, required: true },
       receiverAddress: { type: String, required: true },
       amount: { type: Number, required: true },
       token: { type: String, required: true },
-      type: { type: String, required: true },
-      status: { type: String, required: true },
+      type: { type: String, required: true, index: true },
+      status: { type: String, required: true, index: true },
       condition: { type: String, required: true },
       createdAt: { type: String, required: true },
-      contractEscrowId: { type: Number },
+      releaseDate: { type: String },
+      description: { type: String },
+      naturalLanguagePrompt: { type: String },
+      contractEscrowId: { type: Number, sparse: true, index: true },
       txHash: { type: String },
+      fundedTxHash: { type: String },
       releasedTxHash: { type: String },
       refundedTxHash: { type: String },
       blockNumber: { type: Number },
-      releaseDate: { type: String },
-      scheduledAt: { type: String },
       duration: { type: Number },
+      scheduledAt: { type: String },
       frequency: { type: String },
     }, { strict: false });
 
@@ -111,6 +114,7 @@ async function executeScheduledEscrow(
 async function executeRecurringPayout(
   contract: ethers.Contract,
   escrowId: number,
+  paymentId: string,
   signerAddress: string
 ): Promise<string | null> {
   try {
@@ -125,7 +129,7 @@ async function executeRecurringPayout(
       console.log(`[SCHEDULER] Escrow ${escrowId}: already settled, skipping.`);
     } else if (err?.message?.includes("Recurring period expired")) {
       console.log(`[SCHEDULER] Escrow ${escrowId}: recurring period expired, marking as completed.`);
-      await updatePayment(`escrow_${escrowId}`, { status: "completed" });
+      await updatePayment(paymentId, { status: "completed" });
     } else {
       console.error(`[SCHEDULER] Recurring payout failed for escrow ${escrowId}:`, err?.message || err);
     }
@@ -207,7 +211,7 @@ async function main() {
         if (executedThisSession.has(idempotencyKey)) continue;
 
         console.log(`[SCHEDULER] Checking recurring payment ${paymentId} (escrow ${escrowId})...`);
-        const txHash = await executeRecurringPayout(contract, escrowId, wallet.address);
+        const txHash = await executeRecurringPayout(contract, escrowId, paymentId, wallet.address);
 
         if (txHash) {
           executedThisSession.add(idempotencyKey);
