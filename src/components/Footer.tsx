@@ -4,43 +4,43 @@ import { LockIcon } from './Icons';
 
 export default function Footer() {
   return (
-    <footer className="border-t border-white/[0.06] bg-[#04060b] py-12 text-slate-400">
+    <footer className="border-t border-slate-200 bg-white py-12 text-slate-600 mt-auto">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           {/* Logo & Description */}
           <div className="md:col-span-2 space-y-4">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600">
+            <Link href="/" className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0a4d94] text-white">
                 <LockIcon className="text-white" size={16} />
               </div>
-              <span className="font-sans text-lg font-bold tracking-tight text-white">
-                Smart<span className="text-gradient">Escrow</span>
+              <span className="font-heading text-lg font-bold tracking-tight text-slate-900">
+                Smart<span className="text-[#0a4d94]">Escrow</span>
               </span>
             </Link>
-            <p className="max-w-xs text-sm leading-6">
-              AI-Powered Web3 conditional payments, translating natural language into secure, self-executing escrows.
+            <p className="max-w-xs text-sm text-slate-600 leading-6 font-normal">
+              Self-executing smart escrow contracts compiled from plain-language agreements. Non-custodial and automated.
             </p>
             <div className="flex gap-4 text-xs font-medium text-slate-500">
-              <span>Base Sepolia</span>
+              <span>Network: Base Sepolia Testnet</span>
             </div>
           </div>
 
           {/* Platform Links */}
           <div>
-            <h3 className="text-sm font-semibold text-white">Platform</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">Platform</h3>
             <ul className="mt-4 space-y-2 text-sm">
               <li>
-                <Link href="/dashboard" className="hover:text-white transition-colors">
+                <Link href="/dashboard" className="hover:text-[#0a4d94] transition-colors">
                   Dashboard
                 </Link>
               </li>
               <li>
-                <Link href="/dashboard/create-payment" className="hover:text-white transition-colors">
+                <Link href="/dashboard/create-payment" className="hover:text-[#0a4d94] transition-colors">
                   Create Escrow
                 </Link>
               </li>
               <li>
-                <Link href="/dashboard/history" className="hover:text-white transition-colors">
+                <Link href="/dashboard/history" className="hover:text-[#0a4d94] transition-colors">
                   Transaction History
                 </Link>
               </li>
@@ -49,28 +49,28 @@ export default function Footer() {
 
           {/* Resources Links */}
           <div>
-            <h3 className="text-sm font-semibold text-white">Resources</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">Resources</h3>
             <ul className="mt-4 space-y-2 text-sm">
               <li>
-                <Link href="/about" className="hover:text-white transition-colors">
-                  About Us
+                <Link href="/about" className="hover:text-[#0a4d94] transition-colors">
+                  About SmartEscrow
                 </Link>
               </li>
               <li>
-                <Link href="/dashboard" className="hover:text-white transition-colors">
-                  Smart Contracts
+                <Link href="/dashboard" className="hover:text-[#0a4d94] transition-colors">
+                  Console Sandbox
                 </Link>
               </li>
             </ul>
           </div>
         </div>
 
-        <div className="mt-12 border-t border-white/[0.04] pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="mt-12 border-t border-slate-100 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-slate-500">
-            &copy; {new Date().getFullYear()} SmartEscrow. Mock UI demonstrating next-gen Web3 UX. All rights reserved.
+            &copy; {new Date().getFullYear()} SmartEscrow. All rights reserved.
           </p>
-          <div className="flex gap-6 text-sm">
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">GitHub</a>
+          <div className="flex gap-6 text-xs text-slate-500">
+            <span>Non-custodial cryptographic escrows</span>
           </div>
         </div>
       </div>

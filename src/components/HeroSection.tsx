@@ -77,127 +77,121 @@ export default function HeroSection() {
   }, [stepIdx]);
 
   return (
-    <div className="relative overflow-hidden pt-20 pb-16 lg:pt-32 lg:pb-24">
-      {/* Decorative radial blur element */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
-
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
+    <div className="relative pt-12 pb-16 lg:pt-20 lg:pb-24">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:items-center">
           
           {/* Hero Left Column */}
           <div className="lg:col-span-6 space-y-6 text-center lg:text-left">
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-300">
-              <SparklesIcon size={12} className="animate-pulse" />
-              <span>Next-Gen Web3 Payments</span>
+            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-[#ebf3fb] px-3.5 py-1 text-xs font-semibold text-[#0a4d94]">
+              <span>Conditional Payments Protocol</span>
             </div>
             
-            <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl leading-[1.1]">
-              Conditional Payments <br className="hidden sm:inline" />
-              via <span className="text-gradient">Natural Language</span>
+            <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl leading-[1.1]">
+              Smart Escrow <br className="hidden sm:inline" />
+              in <span className="text-[#0a4d94]">Plain English</span>
             </h1>
             
-            <p className="max-w-2xl mx-auto lg:mx-0 text-base sm:text-lg text-slate-400 leading-relaxed">
-              Describe your contract terms in plain English. SmartEscrow translates your intent, locks funds in trustless smart contracts, and triggers automated release based on real-world outcomes.
+            <p className="max-w-2xl mx-auto lg:mx-0 text-base sm:text-lg text-slate-600 leading-relaxed font-normal">
+              State your payment conditions in plain words. SmartEscrow translates your terms into self-executing smart contracts and releases funds when milestones are verified.
             </p>
             
-            <div className="flex flex-col sm:flex-row justify-center lg:justify-start items-center gap-4 pt-2">
+            <div className="flex flex-col sm:flex-row justify-center lg:justify-start items-center gap-3 pt-2">
               <Link
                 href="/dashboard"
-                className="glow-btn flex h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-full bg-gradient-to-r from-indigo-500 to-violet-600 px-8 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 hover:from-indigo-600 hover:to-violet-700 transition-all"
+                className="btn-primary flex h-12 w-full sm:w-auto items-center justify-center rounded-md px-7 text-sm font-semibold shadow-sm"
               >
-                <span>Launch App</span>
-                <ArrowRightIcon size={16} />
+                Open Console
               </Link>
               <Link
                 href="/about"
-                className="flex h-12 w-full sm:w-auto items-center justify-center rounded-full border border-white/10 px-8 text-sm font-semibold text-slate-300 hover:bg-white/5 hover:text-white transition-all"
+                className="btn-secondary flex h-12 w-full sm:w-auto items-center justify-center rounded-md px-6 text-sm font-medium"
               >
-                Learn How It Works
+                How It Works
               </Link>
             </div>
 
             {/* Quick trust metrics */}
-            <div className="pt-8 border-t border-white/[0.06] grid grid-cols-3 gap-4 max-w-md mx-auto lg:mx-0">
+            <div className="pt-8 border-t border-slate-200 grid grid-cols-3 gap-6 max-w-md mx-auto lg:mx-0">
               <div>
-                <p className="text-xl sm:text-2xl font-bold text-white font-mono">0%</p>
+                <p className="text-2xl font-bold text-slate-900 font-mono">0%</p>
                 <p className="text-xs text-slate-500 font-medium">Platform Custody</p>
               </div>
               <div>
-                <p className="text-xl sm:text-2xl font-bold text-white font-mono">100%</p>
-                <p className="text-xs text-slate-500 font-medium">Decentralized</p>
+                <p className="text-2xl font-bold text-slate-900 font-mono">100%</p>
+                <p className="text-xs text-slate-500 font-medium">On-Chain Locked</p>
               </div>
               <div>
-                <p className="text-xl sm:text-2xl font-bold text-white font-mono">5+</p>
-                <p className="text-xs text-slate-500 font-medium">Chains Supported</p>
+                <p className="text-2xl font-bold text-slate-900 font-mono">5+</p>
+                <p className="text-xs text-slate-500 font-medium">Supported Chains</p>
               </div>
             </div>
           </div>
 
           {/* Hero Right Column - Simulated AI Parsing Interaction */}
           <div className="lg:col-span-6 flex flex-col justify-center">
-            <div className="glass-panel w-full max-w-xl mx-auto rounded-3xl p-6 shadow-2xl relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent" />
+            <div className="surface-card-elevated w-full max-w-xl mx-auto rounded-xl p-6 relative">
               
-              {/* Mock Window Header */}
-              <div className="flex items-center justify-between pb-4 border-b border-white/5 mb-4">
+              {/* Window Header */}
+              <div className="flex items-center justify-between pb-4 border-b border-slate-200 mb-4">
                 <div className="flex items-center gap-1.5">
-                  <div className="h-3 w-3 rounded-full bg-rose-500/40" />
-                  <div className="h-3 w-3 rounded-full bg-amber-500/40" />
-                  <div className="h-3 w-3 rounded-full bg-emerald-500/40" />
+                  <div className="h-3 w-3 rounded-full bg-slate-300" />
+                  <div className="h-3 w-3 rounded-full bg-slate-300" />
+                  <div className="h-3 w-3 rounded-full bg-slate-300" />
                 </div>
-                <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest flex items-center gap-1">
-                  <TerminalIcon size={10} />
-                  AI Escrow Compiler
+                <div className="text-xs font-mono text-slate-500 flex items-center gap-1.5">
+                  <TerminalIcon size={12} className="text-[#0a4d94]" />
+                  Agreement Compiler
                 </div>
               </div>
 
               {/* Chat Input Container */}
               <div className="space-y-4">
-                <div className="bg-slate-950/80 rounded-2xl p-4 border border-white/5 relative min-h-[96px] flex flex-col justify-between">
-                  <span className="text-xs text-indigo-400 font-bold uppercase tracking-wider block mb-1">
-                    Describe Agreement:
+                <div className="surface-inset rounded-lg p-4 relative min-h-[96px] flex flex-col justify-between">
+                  <span className="text-xs text-[#0a4d94] font-semibold block mb-1">
+                    Agreement terms:
                   </span>
-                  <p className="text-sm font-mono text-slate-300 leading-relaxed flex-1">
+                  <p className="text-sm font-mono text-slate-800 leading-relaxed flex-1">
                     {displayText}
-                    {isTyping && <span className="inline-block w-1.5 h-4 bg-indigo-500 ml-0.5 animate-pulse" />}
+                    {isTyping && <span className="inline-block w-1.5 h-4 bg-[#0a4d94] ml-0.5 animate-pulse" />}
                   </p>
                 </div>
 
                 {/* Parsing Loader / Output State */}
                 <div className="min-h-[190px] flex flex-col justify-center">
                   {!showParsed ? (
-                    <div className="text-center py-8 space-y-2 opacity-50">
-                      <div className="h-8 w-8 rounded-full border-2 border-indigo-500/20 border-t-indigo-500 animate-spin mx-auto" />
-                      <p className="text-xs text-slate-400 font-mono">Awaiting prompt completion...</p>
+                    <div className="text-center py-8 space-y-2">
+                      <div className="h-6 w-6 rounded-full border-2 border-slate-300 border-t-[#0a4d94] animate-spin mx-auto" />
+                      <p className="text-xs text-slate-500 font-mono">Parsing terms...</p>
                     </div>
                   ) : (
-                    <div className="border border-indigo-500/20 bg-indigo-500/[0.02] rounded-2xl p-4 space-y-3 animate-in zoom-in-95 duration-200">
-                      <div className="flex justify-between items-center pb-2 border-b border-white/5">
-                        <div className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1">
-                          <SparklesIcon size={10} />
-                          Parsed Parameters
+                    <div className="border border-blue-200 bg-[#ebf3fb] rounded-lg p-4 space-y-3">
+                      <div className="flex justify-between items-center pb-2 border-b border-blue-100">
+                        <div className="text-xs font-bold text-[#0a4d94] flex items-center gap-1.5">
+                          <SparklesIcon size={12} />
+                          Extracted Parameters
                         </div>
-                        <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full flex items-center gap-1">
-                          <LockIcon size={8} /> Ready to Deploy
+                        <span className="text-xs font-semibold text-emerald-800 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded flex items-center gap-1">
+                          <LockIcon size={10} /> Ready to Deploy
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4 text-xs font-mono">
+                      <div className="grid grid-cols-2 gap-3 text-xs">
                         <div>
-                          <p className="text-slate-500">Recipient</p>
-                          <p className="text-slate-200 font-semibold truncate">{SIMULATION_STEPS[stepIdx].parsed.recipient}</p>
+                          <p className="text-slate-500 font-medium">Recipient</p>
+                          <p className="text-slate-900 font-mono font-semibold truncate">{SIMULATION_STEPS[stepIdx].parsed.recipient}</p>
                         </div>
                         <div>
-                          <p className="text-slate-500">Lock Amount</p>
-                          <p className="text-white font-extrabold">{SIMULATION_STEPS[stepIdx].parsed.amount}</p>
+                          <p className="text-slate-500 font-medium">Deposit Amount</p>
+                          <p className="text-slate-900 font-mono font-bold">{SIMULATION_STEPS[stepIdx].parsed.amount}</p>
                         </div>
                         <div className="col-span-2">
-                          <p className="text-slate-500">Oracle Release Condition</p>
-                          <p className="text-slate-300 leading-relaxed">{SIMULATION_STEPS[stepIdx].parsed.condition}</p>
+                          <p className="text-slate-500 font-medium">Release Condition</p>
+                          <p className="text-slate-800 font-medium leading-relaxed">{SIMULATION_STEPS[stepIdx].parsed.condition}</p>
                         </div>
                         <div>
-                          <p className="text-slate-500">Agreement Type</p>
-                          <p className="text-indigo-300">{SIMULATION_STEPS[stepIdx].parsed.type}</p>
+                          <p className="text-slate-500 font-medium">Escrow Type</p>
+                          <p className="text-[#0a4d94] font-semibold">{SIMULATION_STEPS[stepIdx].parsed.type}</p>
                         </div>
                       </div>
                     </div>

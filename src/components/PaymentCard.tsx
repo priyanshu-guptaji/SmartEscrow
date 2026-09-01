@@ -14,24 +14,24 @@ export default function PaymentCard({ payment }: PaymentCardProps) {
     switch (status) {
       case 'completed':
         return {
-          bg: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400',
-          icon: <CheckCircleIcon size={14} />,
+          bg: 'bg-emerald-50 border-emerald-200 text-emerald-800',
+          icon: <CheckCircleIcon size={12} />,
         };
       case 'cancelled':
         return {
-          bg: 'bg-rose-500/10 border-rose-500/30 text-rose-400',
-          icon: <CancelIcon size={14} />,
+          bg: 'bg-rose-50 border-rose-200 text-rose-800',
+          icon: <CancelIcon size={12} />,
         };
       case 'active':
         return {
-          bg: 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400',
-          icon: <LockIcon size={14} className="animate-pulse" />,
+          bg: 'bg-blue-50 border-blue-200 text-[#0a4d94]',
+          icon: <LockIcon size={12} />,
         };
       case 'pending':
       default:
         return {
-          bg: 'bg-amber-500/10 border-amber-500/30 text-amber-400',
-          icon: <ClockIcon size={14} />,
+          bg: 'bg-amber-50 border-amber-200 text-amber-800',
+          icon: <ClockIcon size={12} />,
         };
     }
   };
@@ -47,51 +47,49 @@ export default function PaymentCard({ payment }: PaymentCardProps) {
   };
 
   return (
-    <div className="glass-card rounded-2xl p-5 flex flex-col justify-between border border-white/5 relative overflow-hidden group">
-      <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full blur-xl group-hover:bg-indigo-500/10 transition-all pointer-events-none" />
-
+    <div className="surface-card rounded-lg p-5 flex flex-col justify-between relative">
       <div>
-        <div className="flex items-center justify-between pb-3 border-b border-white/5 mb-4">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 border border-white/10 font-bold text-xs text-white">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded bg-slate-100 border border-slate-200 font-bold text-xs text-slate-800">
               {payment.token}
             </div>
             <div>
-              <p className="text-sm font-bold text-white font-mono">
+              <p className="text-sm font-bold text-slate-900 font-mono">
                 {payment.amount} {payment.token}
               </p>
-              <p className="text-[10px] text-slate-500 uppercase tracking-wide font-semibold">
-                {payment.type}
+              <p className="text-xs text-slate-500 font-medium capitalize">
+                {payment.type} escrow
               </p>
             </div>
           </div>
-          <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${statusStyle.bg}`}>
+          <span className={`inline-flex items-center gap-1 rounded border px-2 py-0.5 text-xs font-semibold ${statusStyle.bg}`}>
             {statusStyle.icon}
             <span className="capitalize">{payment.status}</span>
           </span>
         </div>
 
         <div className="space-y-1 mb-3">
-          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Receiver</span>
+          <span className="text-xs text-slate-500 font-medium">Recipient</span>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
-            <span className="font-semibold text-slate-200">{payment.receiverName}</span>
-            <span className="font-mono text-slate-500 truncate">{payment.receiverAddress}</span>
+            <span className="font-semibold text-slate-900">{payment.receiverName}</span>
+            <span className="font-mono text-slate-500 truncate text-[11px]">{payment.receiverAddress}</span>
           </div>
         </div>
 
-        <div className="space-y-1 bg-slate-950/40 rounded-xl p-3 border border-white/5 mb-4 min-h-[72px]">
-          <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider flex items-center gap-1">
-            <ArrowUpRightIcon size={10} />
-            Conditions of Release
+        <div className="space-y-1 surface-inset rounded-md p-3 mb-4 min-h-[72px]">
+          <span className="text-xs text-slate-700 font-semibold flex items-center gap-1">
+            <ArrowUpRightIcon size={12} className="text-[#0a4d94]" />
+            Release condition
           </span>
-          <p className="text-xs text-slate-300 leading-relaxed line-clamp-3" title={payment.condition}>
+          <p className="text-xs text-slate-600 leading-relaxed line-clamp-3" title={payment.condition}>
             {payment.condition}
           </p>
         </div>
       </div>
 
-      <div className="pt-2 border-t border-white/5 mt-auto flex items-center justify-between gap-4">
-        <span className="text-[10px] text-slate-500 font-medium">
+      <div className="pt-3 border-t border-slate-100 mt-auto flex items-center justify-between gap-4">
+        <span className="text-xs text-slate-500">
           Created {formatDate(payment.createdAt)}
         </span>
 
@@ -99,28 +97,28 @@ export default function PaymentCard({ payment }: PaymentCardProps) {
           <div className="flex items-center gap-2">
             <Link
               href={`/dashboard/payments/${payment.id}`}
-              className="text-xs font-semibold text-slate-400 hover:text-rose-400 transition-colors px-2 py-1 rounded"
-              title="View payment details to refund"
+              className="text-xs font-medium text-slate-600 hover:text-rose-700 transition-colors px-2 py-1 rounded"
+              title="Refund payment"
             >
-              Cancel
+              Refund
             </Link>
             <Link
               href={`/dashboard/payments/${payment.id}`}
-              className="rounded-lg bg-indigo-600/90 hover:bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white transition-all shadow-md shadow-indigo-600/10 hover:shadow-indigo-600/20"
+              className="btn-primary rounded-md px-3 py-1.5 text-xs font-semibold shadow-xs"
             >
-              Release
+              Release Funds
             </Link>
           </div>
         )}
 
         {payment.status === 'completed' && payment.releaseDate && (
-          <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
+          <span className="text-xs text-emerald-700 font-semibold flex items-center gap-1">
             Released {formatDate(payment.releaseDate)}
           </span>
         )}
 
         {payment.status === 'cancelled' && payment.releaseDate && (
-          <span className="text-[10px] text-rose-400 font-semibold flex items-center gap-1">
+          <span className="text-xs text-rose-700 font-semibold flex items-center gap-1">
             Refunded {formatDate(payment.releaseDate)}
           </span>
         )}

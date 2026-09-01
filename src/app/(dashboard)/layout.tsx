@@ -12,7 +12,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#070a13] font-sans text-slate-100">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#f8fafc] font-sans text-slate-900">
       {/* Left Sidebar */}
       <Sidebar
         walletConnected={isConnected}
@@ -24,17 +24,17 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       {/* Right Content Area */}
       <div className="flex-1 flex flex-col overflow-y-auto relative z-10 min-w-0">
         {/* Sticky Dashboard Topbar Header */}
-        <header className="h-16 flex items-center justify-between px-4 sm:px-8 border-b border-white/[0.06] bg-[#070a13]/80 backdrop-blur-md sticky top-0 z-30">
+        <header className="h-16 flex items-center justify-between px-4 sm:px-8 border-b border-slate-200 bg-white/95 backdrop-blur-md sticky top-0 z-30">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 -ml-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all"
+              className="lg:hidden p-2 -ml-2 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all"
               aria-label="Open menu"
             >
               <MenuIcon size={20} />
             </button>
-            <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">
-              SmartEscrow Console
+            <span className="text-xs text-slate-600 font-semibold">
+              Escrow Console
             </span>
           </div>
 

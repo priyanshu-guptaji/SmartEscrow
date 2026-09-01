@@ -5,77 +5,77 @@ import { LockIcon, SparklesIcon, ShieldCheckIcon, TerminalIcon } from '@/compone
 export default function AboutPage() {
   const pillars = [
     {
-      title: 'Conversational UI to Smart Contract',
-      description: 'By matching Large Language Models (LLMs) with precise abstract syntax trees (ASTs), we map human intentions directly to EVM bytecode. This removes the coding barrier and makes smart contract technology accessible to everyone.',
-      icon: <TerminalIcon className="text-indigo-400" size={20} />,
+      title: 'Natural Intent to Bytecode',
+      description: 'We map plain-language business conditions directly to EVM smart contract parameters. This removes manual drafting friction while preserving cryptographic security.',
+      icon: <TerminalIcon className="text-[#0a4d94]" size={20} />,
     },
     {
-      title: 'Decentralized Oracle Networks',
-      description: 'SmartEscrow connects with decentralized oracle systems like Chainlink. Contracts can safely fetch APIs, query databases, check GitHub releases, verify payment API endpoints, and pull real-world weather metrics to execute code.',
-      icon: <SparklesIcon className="text-violet-400" size={20} />,
+      title: 'Decentralized Oracle Bridges',
+      description: 'SmartEscrow connects to decentralized oracle networks and custom API bridges to verify real-world triggers: GitHub PR merges, delivery confirmations, API webhooks, and deadlines.',
+      icon: <SparklesIcon className="text-[#0a4d94]" size={20} />,
     },
     {
-      title: 'Trustless Escrows',
-      description: 'Your capital is completely secure. The application is non-custodial: funds are locked directly in audited open-source smart contracts. The code holds the money, and the code releases it only when release parameters match.',
-      icon: <ShieldCheckIcon className="text-emerald-400" size={20} />,
+      title: 'Non-Custodial Security',
+      description: 'Funds are locked directly in audited smart contracts. Neither SmartEscrow nor any third party holds discretionary custody over escrow balances.',
+      icon: <ShieldCheckIcon className="text-emerald-700" size={20} />,
     },
   ];
 
   const milestones = [
     {
       phase: 'Phase 1',
-      title: 'Core Architecture',
-      description: 'High-fidelity prototypes, frontend interface components, user flow mapping, and mock state configurations.',
+      title: 'Core Protocol Architecture',
+      description: 'Interface architecture, escrow state management, and wallet connector infrastructure.',
       done: true,
     },
     {
       phase: 'Phase 2',
-      title: 'AI Parsing & LLM Integration',
-      description: 'Gemini AI-powered natural language parser with rule-based fallback, translating plain English into structured escrow parameters.',
+      title: 'Natural Language Compiler',
+      description: 'Gemini AI parsing engine with deterministic rule-based validation, converting plain English terms into structured escrow parameters.',
       done: true,
     },
     {
       phase: 'Phase 3',
-      title: 'EVM Smart Contract Deployment',
-      description: 'Solidity smart contracts with conditional, scheduled, recurring, and NFT-conditional escrows. Deployed to Base Sepolia with full test suite.',
+      title: 'Smart Contract Deployment',
+      description: 'Solidity contracts supporting conditional, scheduled, recurring, and NFT escrow types on Base Sepolia.',
       done: true,
     },
     {
       phase: 'Phase 4',
-      title: 'Oracle Consensus & Mainnet',
-      description: 'Integrating Chainlink Functions and standard API oracles to verify conditions, followed by mainnet deployment.',
+      title: 'Automated Oracle Network',
+      description: 'Chainlink Functions integration and automated keeper triggers for milestone-based release.',
       done: false,
     },
   ];
 
   return (
-    <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16 space-y-16">
+    <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-12 space-y-16">
       {/* Introduction */}
-      <section className="text-center space-y-4">
-        <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 mb-2">
-          <LockIcon size={24} />
+      <section className="text-center space-y-3">
+        <div className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-[#ebf3fb] border border-blue-200 text-[#0a4d94] mb-1">
+          <LockIcon size={20} />
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-white">
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
           About SmartEscrow
         </h1>
-        <p className="max-w-2xl mx-auto text-base text-slate-400 leading-relaxed">
-          SmartEscrow was built to bridge the gap between complex blockchain code and everyday business agreements. We make cryptocurrency transactions smart, safe, and conversational.
+        <p className="max-w-2xl mx-auto text-base text-slate-600 leading-relaxed font-normal">
+          SmartEscrow replaces traditional escrow overhead with automated smart contracts, enabling instant, transparent, and conditional cryptocurrency transactions.
         </p>
       </section>
 
       {/* Pillars */}
-      <section className="space-y-8">
-        <h2 className="text-xl sm:text-2xl font-bold text-white text-center">
-          Our Three Technological Pillars
+      <section className="space-y-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-slate-900 text-center">
+          Core Principles
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {pillars.map((pillar, idx) => (
-            <div key={idx} className="glass-card rounded-2xl p-6 border border-white/5 space-y-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.03] border border-white/5">
+            <div key={idx} className="surface-card rounded-lg p-6 space-y-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-100 border border-slate-200">
                 {pillar.icon}
               </div>
-              <h3 className="text-base font-bold text-white">{pillar.title}</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <h3 className="text-base font-bold text-slate-900">{pillar.title}</h3>
+              <p className="text-xs text-slate-600 leading-relaxed font-normal">
                 {pillar.description}
               </p>
             </div>
@@ -84,63 +84,55 @@ export default function AboutPage() {
       </section>
 
       {/* Core Concept Flow Diagram */}
-      <section className="glass-panel rounded-3xl p-8 border border-white/5 space-y-6">
-        <h3 className="text-lg font-bold text-white text-center md:text-left">
-          The Trustless Execution Cycle
+      <section className="surface-card-elevated rounded-xl p-8 space-y-6">
+        <h3 className="text-base font-bold text-slate-900 text-center md:text-left">
+          The Escrow Lifecycle
         </h3>
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
-          <div className="space-y-1 md:max-w-[200px]">
-            <p className="text-sm font-bold text-indigo-400">1. Natural Intent</p>
-            <p className="text-xs text-slate-400">User describes the condition using ordinary language.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-center md:text-left">
+          <div className="surface-inset rounded-lg p-4 space-y-1">
+            <p className="text-xs font-bold text-[#0a4d94]">1. Agreement Definition</p>
+            <p className="text-xs text-slate-600">User defines the terms in natural language.</p>
           </div>
-          <span className="text-slate-600 hidden md:inline">→</span>
-          <div className="space-y-1 md:max-w-[200px]">
-            <p className="text-sm font-bold text-violet-400">2. Smart Lock</p>
-            <p className="text-xs text-slate-400">Funds are locked securely in the Escrow Smart Contract.</p>
+          <div className="surface-inset rounded-lg p-4 space-y-1">
+            <p className="text-xs font-bold text-[#0a4d94]">2. Smart Lock</p>
+            <p className="text-xs text-slate-600">Tokens are locked in an audited smart contract.</p>
           </div>
-          <span className="text-slate-600 hidden md:inline">→</span>
-          <div className="space-y-1 md:max-w-[200px]">
-            <p className="text-sm font-bold text-cyan-400">3. Oracle Monitor</p>
-            <p className="text-xs text-slate-400">Chainlink or custom API bridges check condition state.</p>
+          <div className="surface-inset rounded-lg p-4 space-y-1">
+            <p className="text-xs font-bold text-[#0a4d94]">3. Oracle Verification</p>
+            <p className="text-xs text-slate-600">Automated oracles verify milestone completion.</p>
           </div>
-          <span className="text-slate-600 hidden md:inline">→</span>
-          <div className="space-y-1 md:max-w-[200px]">
-            <p className="text-sm font-bold text-emerald-400">4. Auto Payout</p>
-            <p className="text-xs text-slate-400">Contract triggers and pays the receiver automatically.</p>
+          <div className="surface-inset rounded-lg p-4 space-y-1">
+            <p className="text-xs font-bold text-emerald-800">4. Payout Settlement</p>
+            <p className="text-xs text-slate-600">Contract transfers funds to the recipient.</p>
           </div>
         </div>
       </section>
 
       {/* Roadmap */}
-      <section className="space-y-8">
-        <h2 className="text-xl sm:text-2xl font-bold text-white text-center">
+      <section className="space-y-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-slate-900 text-center">
           Development Roadmap
         </h2>
-        <div className="relative border-l border-white/10 pl-6 ml-4 space-y-8 max-w-2xl mx-auto">
+        <div className="border-l-2 border-slate-200 pl-6 ml-4 space-y-8 max-w-2xl mx-auto">
           {milestones.map((milestone, idx) => (
             <div key={idx} className="relative">
-              {/* Bullet Node */}
-              <span className={`absolute -left-[31px] top-1.5 flex h-4 w-4 items-center justify-center rounded-full border-2 bg-[#070a13] ${
+              <span className={`absolute -left-[31px] top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full border-2 bg-white ${
                 milestone.done
-                  ? 'border-emerald-500 shadow-sm shadow-emerald-500/50'
-                  : idx === milestones.findIndex(m => !m.done)
-                    ? 'border-indigo-500 shadow-sm shadow-indigo-500/50'
-                    : 'border-white/20'
+                  ? 'border-emerald-600 bg-emerald-600'
+                  : 'border-slate-300 bg-white'
               }`} />
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded ${
                     milestone.done
-                      ? 'bg-emerald-500/10 text-emerald-400'
-                      : idx === milestones.findIndex(m => !m.done)
-                        ? 'bg-indigo-500/10 text-indigo-400'
-                        : 'bg-white/5 text-slate-400'
+                      ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                      : 'bg-slate-100 text-slate-600 border border-slate-200'
                   }`}>
                     {milestone.phase}
                   </span>
-                  <h4 className="text-sm font-bold text-white">{milestone.title}</h4>
+                  <h4 className="text-sm font-bold text-slate-900">{milestone.title}</h4>
                 </div>
-                <p className="text-xs text-slate-400 leading-relaxed">
+                <p className="text-xs text-slate-600 leading-relaxed font-normal">
                   {milestone.description}
                 </p>
               </div>
@@ -150,12 +142,12 @@ export default function AboutPage() {
       </section>
 
       {/* CTA */}
-      <section className="text-center pt-8 border-t border-white/[0.06]">
+      <section className="text-center pt-8 border-t border-slate-200">
         <Link
           href="/dashboard"
-          className="glow-btn inline-flex h-11 items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-violet-600 px-8 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20"
+          className="btn-primary inline-flex h-11 items-center justify-center rounded-md px-7 text-sm font-semibold shadow-sm"
         >
-          Explore the Sandbox
+          Open Console Sandbox
         </Link>
       </section>
     </div>

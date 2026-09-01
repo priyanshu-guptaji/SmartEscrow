@@ -198,127 +198,127 @@ export default function CreatePaymentPage() {
   return (
     <div className="space-y-8 max-w-3xl mx-auto">
       <div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+        <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
           {step === 'input' ? 'Create Escrow Payment' : 'Review & Confirm'}
         </h1>
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-slate-600 font-normal">
           {step === 'input'
-            ? 'Configure secure escrows via AI-powered plain-text parsing or manually define smart contract conditions.'
-            : 'Review payment details before confirming the blockchain transaction.'}
+            ? 'Configure conditional escrows via natural language parsing or manual smart contract parameters.'
+            : 'Review payment parameters before confirming the transaction on Base Sepolia.'}
         </p>
       </div>
 
       {!isContractDeployed && (
-        <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4 text-xs text-amber-400">
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900">
           <p className="font-semibold mb-1">SmartEscrow contract not deployed</p>
-          <p className="text-amber-400/80">
-            Set <code className="font-mono bg-amber-500/10 px-1 rounded">NEXT_PUBLIC_SMART_ESCROW_ADDRESS</code> in your
-            .env.local after deploying the contract to Base Sepolia. On-chain escrow creation is unavailable until deployment.
+          <p className="text-amber-800">
+            Set <code className="font-mono bg-amber-100 px-1 rounded">NEXT_PUBLIC_SMART_ESCROW_ADDRESS</code> in your
+            .env.local after deploying the contract to Base Sepolia.
           </p>
         </div>
       )}
 
       {paymentType === 'scheduled' && (
-        <div className="rounded-2xl border border-indigo-500/20 bg-indigo-500/10 p-4 text-xs text-indigo-400">
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-xs text-[#0a4d94]">
           <p className="font-semibold mb-1">Scheduled Payment Notice</p>
-          <p className="text-indigo-400/80">
-            Funds are locked in the smart contract until the release time. An executor address (set to the deployer by default) must call <code className="font-mono bg-indigo-500/10 px-1 rounded">executeScheduledRelease</code> after the scheduled time to release funds.
+          <p className="text-slate-700">
+            Funds are locked in the smart contract until the release time. An executor address calls <code className="font-mono bg-blue-100 px-1 rounded">executeScheduledRelease</code> after the scheduled time.
           </p>
         </div>
       )}
 
       {paymentType === 'recurring' && (
-        <div className="rounded-2xl border border-indigo-500/20 bg-indigo-500/10 p-4 text-xs text-indigo-400">
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-xs text-[#0a4d94]">
           <p className="font-semibold mb-1">Recurring Payment Notice</p>
-          <p className="text-indigo-400/80">
-            Each payout requires the executor to call <code className="font-mono bg-indigo-500/10 px-1 rounded">executeRecurringPayout</code> after each interval elapses. The executor can be the deployer wallet or a designated automation service.
+          <p className="text-slate-700">
+            Each payout triggers <code className="font-mono bg-blue-100 px-1 rounded">executeRecurringPayout</code> after each interval elapses.
           </p>
         </div>
       )}
 
       {successMsg && (
-        <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-sm text-emerald-400 text-center flex items-center justify-center gap-2">
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800 text-center flex items-center justify-center gap-2">
           <CheckCircleIcon size={16} />
           {successMsg} Redirecting...
         </div>
       )}
 
       {parseError && step === 'input' && (
-        <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 p-4 text-sm text-rose-400 text-center">
+        <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 text-center">
           {parseError}
         </div>
       )}
 
       {step === 'input' && (
         <>
-          <div className="flex border-b border-white/[0.06] gap-4 sm:gap-6 overflow-x-auto">
+          <div className="flex border-b border-slate-200 gap-4 sm:gap-6 overflow-x-auto">
             <button
               onClick={() => setActiveTab('ai')}
               className={`pb-3 text-sm font-semibold transition-all relative whitespace-nowrap ${
                 activeTab === 'ai'
-                  ? 'text-indigo-400 border-b-2 border-indigo-500'
-                  : 'text-slate-500 hover:text-slate-300'
+                  ? 'text-[#0a4d94] border-b-2 border-[#0a4d94]'
+                  : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               <span className="flex items-center gap-1.5">
                 <SparklesIcon size={14} />
-                AI Prompt Parser
+                Natural Language Parser
               </span>
             </button>
             <button
               onClick={() => setActiveTab('manual')}
               className={`pb-3 text-sm font-semibold transition-all relative whitespace-nowrap ${
                 activeTab === 'manual'
-                  ? 'text-indigo-400 border-b-2 border-indigo-500'
-                  : 'text-slate-500 hover:text-slate-300'
+                  ? 'text-[#0a4d94] border-b-2 border-[#0a4d94]'
+                  : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               <span className="flex items-center gap-1.5">
                 <TerminalIcon size={14} />
-                Manual Parameters
+                Manual Configuration
               </span>
             </button>
           </div>
 
           {activeTab === 'ai' && (
             <div className="space-y-6">
-              <div className="glass-card rounded-2xl p-6 border border-white/5 space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-white/5">
-                  <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
-                    <SparklesIcon size={14} className="text-indigo-400" />
+              <div className="surface-card rounded-lg p-6 space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                    <SparklesIcon size={14} className="text-[#0a4d94]" />
                     Describe Agreement Terms
                   </h3>
-                  <span className="text-[10px] font-bold text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full">
-                    Gemini AI Parser
+                  <span className="text-xs font-semibold text-[#0a4d94] bg-[#ebf3fb] border border-blue-200 px-2 py-0.5 rounded">
+                    Gemini AI
                   </span>
                 </div>
 
-                <p className="text-xs text-slate-400 leading-relaxed">
+                <p className="text-xs text-slate-600 leading-relaxed font-normal">
                   Describe in plain English: who gets paid, how much crypto, which token, and the exact release trigger. The AI will extract structured parameters automatically.
                 </p>
 
                 <textarea
                   value={nlInput}
                   onChange={(e) => setNlInput(e.target.value)}
-                  placeholder='e.g., "Pay Rahul 10 USDC after he sends me NFT #25."'
+                  placeholder='e.g., "Pay Rahul 10 USDC after he transfers NFT #25 to my wallet."'
                   rows={4}
-                  className="w-full rounded-xl bg-slate-950 border border-white/10 p-4 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-mono leading-relaxed"
+                  className="w-full rounded-md bg-white border border-slate-300 p-3.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#0a4d94] font-mono leading-relaxed"
                 />
 
                 <div className="flex justify-end pt-2">
                   <button
                     onClick={() => handleAIParse()}
                     disabled={isParsing || !nlInput.trim()}
-                    className="glow-btn flex h-10 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-6 text-xs font-semibold text-white shadow-lg shadow-indigo-500/20 hover:from-indigo-600 hover:to-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    className="btn-primary flex h-10 items-center justify-center gap-2 rounded-md px-6 text-xs font-semibold shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isParsing ? (
                       <>
                         <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                        <span>Parsing with AI...</span>
+                        <span>Parsing terms...</span>
                       </>
                     ) : (
                       <>
-                        <span>Process with AI</span>
+                        <span>Extract Parameters</span>
                         <ChevronRightIcon size={12} />
                       </>
                     )}
@@ -327,8 +327,8 @@ export default function CreatePaymentPage() {
               </div>
 
               <div className="space-y-3">
-                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider px-1">
-                  Example Prompts
+                <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-1">
+                  Preset Examples
                 </h4>
                 <div className="space-y-2">
                   {PRESET_PROMPTS.map((preset, idx) => (
@@ -336,11 +336,11 @@ export default function CreatePaymentPage() {
                       key={idx}
                       onClick={() => handleAIParse(preset)}
                       disabled={isParsing}
-                      className="w-full text-left rounded-xl bg-white/[0.01] hover:bg-white/[0.03] border border-white/5 hover:border-indigo-500/20 p-3 text-xs text-slate-400 hover:text-white transition-all flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full text-left rounded-md bg-white hover:bg-slate-50 border border-slate-200 p-3 text-xs text-slate-700 hover:text-slate-900 transition-all flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs"
                     >
-                      <span className="font-mono truncate mr-4">{preset}</span>
-                      <span className="text-[10px] text-indigo-400 group-hover:translate-x-0.5 transition-all font-semibold whitespace-nowrap">
-                        Test Parse &rarr;
+                      <span className="font-mono truncate mr-4 text-xs">{preset}</span>
+                      <span className="text-xs text-[#0a4d94] font-semibold whitespace-nowrap">
+                        Load
                       </span>
                     </button>
                   ))}
@@ -350,14 +350,14 @@ export default function CreatePaymentPage() {
           )}
 
           {activeTab === 'manual' && (
-            <form onSubmit={handleProceedToReview} className="glass-card rounded-2xl p-6 border border-white/5 space-y-6">
-              <div className="pb-3 border-b border-white/5 flex items-center justify-between">
+            <form onSubmit={handleProceedToReview} className="surface-card rounded-lg p-6 space-y-6">
+              <div className="pb-3 border-b border-slate-100 flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-bold text-white">Escrow Deployment Parameters</h3>
-                  <p className="text-xs text-slate-500">Review AI-parsed parameters or configure contract inputs manually.</p>
+                  <h3 className="text-sm font-bold text-slate-900">Escrow Parameters</h3>
+                  <p className="text-xs text-slate-500 font-normal">Review extracted parameters or configure contract inputs directly.</p>
                 </div>
                 {usedAI && (
-                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <span className="text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded flex items-center gap-1">
                     <CheckCircleIcon size={10} />
                     AI Parsed
                   </span>
@@ -366,48 +366,48 @@ export default function CreatePaymentPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-400">Receiver Name</label>
+                  <label className="text-xs font-semibold text-slate-700">Recipient Name</label>
                   <input
                     type="text" required value={receiverName}
                     onChange={(e) => setReceiverName(e.target.value)}
                     placeholder="e.g. Alice Vance"
-                    className="w-full rounded-xl bg-slate-950 border border-white/10 px-4 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                    className="w-full rounded-md bg-white border border-slate-300 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#0a4d94]"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-400 font-mono">Receiver Address / ENS</label>
+                  <label className="text-xs font-semibold text-slate-700">Recipient Address / ENS</label>
                   <input
                     type="text" required value={receiverAddress}
                     onChange={(e) => { setReceiverAddress(e.target.value); }}
                     onBlur={() => { if (receiverAddress.endsWith('.eth')) resolveENS(receiverAddress); }}
                     placeholder="0x... or name.eth"
-                    className="w-full rounded-xl bg-slate-950 border border-white/10 px-4 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 font-mono"
+                    className="w-full rounded-md bg-white border border-slate-300 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#0a4d94] font-mono"
                   />
-                  {isResolving && <p className="text-[10px] text-indigo-400">Resolving ENS...</p>}
-                  {resolveError && <p className="text-[10px] text-rose-400">{resolveError}</p>}
+                  {isResolving && <p className="text-[10px] text-[#0a4d94]">Resolving ENS...</p>}
+                  {resolveError && <p className="text-[10px] text-rose-600">{resolveError}</p>}
                   {resolvedAddress && (
-                    <p className="text-[10px] text-emerald-400 font-mono break-all">
+                    <p className="text-[10px] text-emerald-700 font-mono break-all">
                       Resolved: {resolvedAddress}
                     </p>
                   )}
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-400">Amount</label>
+                  <label className="text-xs font-semibold text-slate-700">Amount</label>
                   <input
                     type="number" step="any" required value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     placeholder="0.0"
-                    className="w-full rounded-xl bg-slate-950 border border-white/10 px-4 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 font-mono"
+                    className="w-full rounded-md bg-white border border-slate-300 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#0a4d94] font-mono"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-400">Token Symbol</label>
+                  <label className="text-xs font-semibold text-slate-700">Token Symbol</label>
                   <select
                     value={token} onChange={(e) => setToken(e.target.value as TokenSymbol)}
-                    className="w-full rounded-xl bg-slate-950 border border-white/10 px-4 py-2.5 text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
+                    className="w-full rounded-md bg-white border border-slate-300 px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#0a4d94]"
                   >
                     <option value="ETH">ETH (Ethereum)</option>
                     <option value="USDC">USDC (USD Coin)</option>
@@ -416,56 +416,55 @@ export default function CreatePaymentPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-400">Escrow Type</label>
+                  <label className="text-xs font-semibold text-slate-700">Escrow Type</label>
                   <select
                     value={paymentType} onChange={(e) => setPaymentType(e.target.value as PaymentType)}
-                    className="w-full rounded-xl bg-slate-950 border border-white/10 px-4 py-2.5 text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
+                    className="w-full rounded-md bg-white border border-slate-300 px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#0a4d94]"
                   >
                     <option value="conditional">Conditional Release (Oracles)</option>
                     <option value="nft-conditional">NFT Conditional Release</option>
                     <option value="scheduled">Scheduled Date Payout</option>
-                    <option value="recurring">Recurring Monthly Subscription</option>
+                    <option value="recurring">Recurring Periodic Subscription</option>
                   </select>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-400">Duration (seconds)</label>
+                  <label className="text-xs font-semibold text-slate-700">Duration (seconds)</label>
                   <input
                     type="number" value={duration}
                     onChange={(e) => setDuration(e.target.value)}
                     placeholder="86400"
-                    className="w-full rounded-xl bg-slate-950 border border-white/10 px-4 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 font-mono"
+                    className="w-full rounded-md bg-white border border-slate-300 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#0a4d94] font-mono"
                   />
-                  <p className="text-[10px] text-slate-600">86400 = 1 day, 604800 = 7 days</p>
+                  <p className="text-[11px] text-slate-500">86400 = 1 day, 604800 = 7 days</p>
                 </div>
 
                 {/* Scheduled payment: date picker */}
                 {paymentType === 'scheduled' && (
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-400">Release Date &amp; Time</label>
+                    <label className="text-xs font-semibold text-slate-700">Release Date &amp; Time</label>
                     <input
                       type="datetime-local" required value={scheduledDate}
                       onChange={(e) => setScheduledDate(e.target.value)}
-                      className="w-full rounded-xl bg-slate-950 border border-white/10 px-4 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 font-mono"
+                      className="w-full rounded-md bg-white border border-slate-300 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#0a4d94] font-mono"
                     />
-                    <p className="text-[10px] text-slate-600">Funds release automatically at this time (requires executor)</p>
+                    <p className="text-[11px] text-slate-500">Funds unlock at this timestamp</p>
                   </div>
                 )}
 
                 {/* Recurring payment: interval */}
                 {paymentType === 'recurring' && (
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-400">Payout Interval (seconds)</label>
+                    <label className="text-xs font-semibold text-slate-700">Payout Interval</label>
                     <select
                       value={intervalSeconds} onChange={(e) => setIntervalSeconds(e.target.value)}
-                      className="w-full rounded-xl bg-slate-950 border border-white/10 px-4 py-2.5 text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
+                      className="w-full rounded-md bg-white border border-slate-300 px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#0a4d94]"
                     >
                       <option value="86400">Daily (86400s)</option>
                       <option value="604800">Weekly (604800s)</option>
                       <option value="2592000">Monthly (2592000s)</option>
                       <option value="7776000">Quarterly (7776000s)</option>
                     </select>
-                    <p className="text-[10px] text-slate-600">Requires executor to trigger each payout</p>
                   </div>
                 )}
 
@@ -473,61 +472,61 @@ export default function CreatePaymentPage() {
                 {paymentType === 'nft-conditional' && (
                   <>
                     <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-slate-400 font-mono">NFT Contract Address</label>
+                      <label className="text-xs font-semibold text-slate-700">NFT Contract Address</label>
                       <input
                         type="text" required value={nftContract}
                         onChange={(e) => setNftContract(e.target.value)}
                         placeholder="0x... (ERC-721 contract)"
-                        className="w-full rounded-xl bg-slate-950 border border-white/10 px-4 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 font-mono"
+                        className="w-full rounded-md bg-white border border-slate-300 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#0a4d94] font-mono"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-slate-400">NFT Token ID</label>
+                      <label className="text-xs font-semibold text-slate-700">NFT Token ID</label>
                       <input
                         type="number" required value={nftTokenId}
                         onChange={(e) => setNftTokenId(e.target.value)}
                         placeholder="25"
-                        className="w-full rounded-xl bg-slate-950 border border-white/10 px-4 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 font-mono"
+                        className="w-full rounded-md bg-white border border-slate-300 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#0a4d94] font-mono"
                       />
                     </div>
                   </>
                 )}
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-400">Reference Description</label>
+                  <label className="text-xs font-semibold text-slate-700">Reference Label</label>
                   <input
                     type="text" value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="e.g. Website Milestone Escrow"
-                    className="w-full rounded-xl bg-slate-950 border border-white/10 px-4 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                    placeholder="e.g. Frontend Milestone Payout"
+                    className="w-full rounded-md bg-white border border-slate-300 px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#0a4d94]"
                   />
                 </div>
 
                 <div className="space-y-1.5 col-span-2">
-                  <label className="text-xs font-semibold text-slate-400">Release Condition</label>
+                  <label className="text-xs font-semibold text-slate-700">Release Condition</label>
                   <textarea
                     required value={condition}
                     onChange={(e) => setCondition(e.target.value)}
-                    placeholder="Define the exact condition that must be satisfied before funds are released..."
+                    placeholder="Define the milestone condition that must be fulfilled before release..."
                     rows={3}
-                    className="w-full rounded-xl bg-slate-950 border border-white/10 p-3.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 leading-relaxed"
+                    className="w-full rounded-md bg-white border border-slate-300 p-3 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#0a4d94] leading-relaxed"
                   />
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between pt-4 border-t border-white/5 gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between pt-4 border-t border-slate-100 gap-3">
                 <button
                   type="button"
                   onClick={() => setActiveTab('ai')}
-                  className="text-xs font-semibold text-slate-500 hover:text-slate-300 transition-colors"
+                  className="text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors text-left"
                 >
-                  &larr; Back to Prompt Input
+                  Back to Prompt Input
                 </button>
 
                 <button
                   type="submit"
                   disabled={!isConnected}
-                  className="glow-btn flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-8 text-xs font-semibold text-white shadow-lg shadow-indigo-500/20 hover:from-indigo-600 hover:to-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  className="btn-primary flex h-10 items-center justify-center gap-2 rounded-md px-7 text-xs font-semibold shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isConnected ? (
                     <>

@@ -19,17 +19,17 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-white/[0.06] bg-[#070a13]/70 backdrop-blur-md">
+    <nav className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur-md">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-all">
+            <Link href="/" className="flex items-center gap-2.5 group">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#0a4d94] text-white shadow-sm transition-transform group-hover:scale-105">
                 <LockIcon className="text-white" size={18} />
               </div>
-              <span className="font-sans text-xl font-bold tracking-tight text-white">
-                Smart<span className="text-gradient">Escrow</span>
+              <span className="font-heading text-xl font-bold tracking-tight text-slate-900">
+                Smart<span className="text-[#0a4d94]">Escrow</span>
               </span>
             </Link>
           </div>
@@ -41,8 +41,8 @@ export default function Navbar() {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`text-sm font-medium transition-colors hover:text-white ${
-                    isLinkActive(link.href) ? 'text-white' : 'text-slate-400'
+                  className={`text-sm font-medium transition-colors hover:text-[#0a4d94] ${
+                    isLinkActive(link.href) ? 'text-[#0a4d94] font-semibold' : 'text-slate-600'
                   }`}
                 >
                   {link.name}
@@ -51,9 +51,9 @@ export default function Navbar() {
             </div>
             <Link
               href="/dashboard"
-              className="glow-btn flex h-10 items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-violet-600 px-5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 hover:from-indigo-600 hover:to-violet-700 transition-all"
+              className="btn-primary flex h-10 items-center justify-center rounded-md px-5 text-sm font-semibold shadow-sm"
             >
-              Launch App
+              Open Console
             </Link>
           </div>
 
@@ -61,7 +61,7 @@ export default function Navbar() {
           <div className="flex md:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center rounded-md p-2 text-slate-400 hover:bg-white/5 hover:text-white focus:outline-none"
+              className="inline-flex items-center justify-center rounded-md p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus:outline-none"
             >
               {isOpen ? <CloseIcon size={24} /> : <MenuIcon size={24} />}
             </button>
@@ -71,16 +71,16 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden border-b border-white/[0.06] bg-[#070a13]/95 px-4 py-4 space-y-3">
+        <div className="md:hidden border-b border-slate-200 bg-white px-4 py-4 space-y-3 shadow-lg">
           {navLinks.map((link) => (
             <Link
               key={link.name}
               href={link.href}
               onClick={() => setIsOpen(false)}
-              className={`block rounded-lg px-3 py-2 text-base font-medium transition-colors ${
+              className={`block rounded-md px-3 py-2 text-base font-medium transition-colors ${
                 isLinkActive(link.href)
-                  ? 'bg-indigo-500/10 text-white'
-                  : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                  ? 'bg-slate-100 text-[#0a4d94] font-semibold'
+                  : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
               {link.name}
@@ -90,9 +90,9 @@ export default function Navbar() {
             <Link
               href="/dashboard"
               onClick={() => setIsOpen(false)}
-              className="flex h-11 w-full items-center justify-center rounded-lg bg-gradient-to-r from-indigo-500 to-violet-600 text-sm font-semibold text-white shadow-md shadow-indigo-500/10"
+              className="btn-primary flex h-11 w-full items-center justify-center rounded-md text-sm font-semibold shadow-sm"
             >
-              Launch App
+              Open Console
             </Link>
           </div>
         </div>

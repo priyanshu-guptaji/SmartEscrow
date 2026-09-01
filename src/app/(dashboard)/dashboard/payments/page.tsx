@@ -28,8 +28,8 @@ export default function PaymentsPage() {
   if (!isConnected) {
     return (
       <div className="flex flex-col items-center justify-center py-24 space-y-4">
-        <div className="glass-card rounded-2xl p-8 border border-white/5 text-center space-y-3 max-w-md">
-          <p className="text-sm text-slate-400">Please connect your wallet to view payments.</p>
+        <div className="surface-card rounded-lg p-8 text-center space-y-3 max-w-md">
+          <p className="text-sm text-slate-600">Please connect your wallet to view payments.</p>
         </div>
       </div>
     );
@@ -39,16 +39,16 @@ export default function PaymentsPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
             Payments
           </h1>
-          <p className="text-sm text-slate-400">
-            All escrow payments — active, completed, and refunded.
+          <p className="text-sm text-slate-600 font-normal">
+            All escrow agreements — active, settled, and refunded.
           </p>
         </div>
         <Link
           href="/dashboard/create-payment"
-          className="glow-btn flex h-10 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20"
+          className="btn-primary flex h-10 items-center justify-center gap-2 rounded-md px-5 text-sm font-semibold shadow-sm"
         >
           <PlusIcon size={16} />
           <span>New Payment</span>
@@ -62,22 +62,19 @@ export default function PaymentsPage() {
             placeholder="Search payments..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-xl bg-slate-950 border border-white/10 px-4 py-2.5 pl-10 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+            className="w-full rounded-md bg-white border border-slate-300 px-4 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#0a4d94]"
           />
-          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs">
-            &#x1F50D;
-          </div>
         </div>
 
-        <div className="flex flex-wrap rounded-lg bg-slate-950/60 p-0.5 border border-white/5">
+        <div className="flex flex-wrap rounded-md bg-slate-100 p-0.5 border border-slate-200">
           {(['all', 'active', 'completed', 'cancelled'] as const).map((t) => (
             <button
               key={t}
               onClick={() => setFilter(t)}
-              className={`rounded-md px-2.5 py-1 text-xs font-medium uppercase tracking-tight transition-all ${
+              className={`rounded px-3 py-1 text-xs font-medium capitalize transition-all ${
                 filter === t
-                  ? 'bg-slate-800 text-white shadow-sm'
-                  : 'text-slate-500 hover:text-slate-300'
+                  ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                  : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               {t}
@@ -88,7 +85,7 @@ export default function PaymentsPage() {
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value as typeof typeFilter)}
-          className="rounded-xl bg-slate-950 border border-white/10 px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
+          className="rounded-md bg-white border border-slate-300 px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#0a4d94]"
         >
           <option value="all">All Types</option>
           <option value="conditional">Conditional</option>
@@ -98,23 +95,23 @@ export default function PaymentsPage() {
       </div>
 
       {displayedPayments.length === 0 ? (
-        <div className="glass-card rounded-2xl p-12 text-center border border-white/5 space-y-3">
-          <p className="text-sm text-slate-400">No payments found matching your filters.</p>
+        <div className="surface-card rounded-lg p-12 text-center space-y-3">
+          <p className="text-sm text-slate-600">No payments found matching your filters.</p>
           <Link
             href="/dashboard/create-payment"
-            className="text-xs text-indigo-400 font-bold hover:underline"
+            className="text-xs text-[#0a4d94] font-bold hover:underline"
           >
-            Create your first payment →
+            Create your first payment
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {displayedPayments.map((payment) => (
-                <PaymentCard
-                  key={payment.id}
-                  payment={payment}
-                />
-              ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {displayedPayments.map((payment) => (
+            <PaymentCard
+              key={payment.id}
+              payment={payment}
+            />
+          ))}
         </div>
       )}
     </div>
