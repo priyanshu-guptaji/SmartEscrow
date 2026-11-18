@@ -7,6 +7,7 @@ import { useEscrowContract } from '@/hooks/useEscrowContract';
 import { useAccount } from 'wagmi';
 import Link from 'next/link';
 import { CheckCircleIcon, CancelIcon, ClockIcon, LockIcon, ChevronRightIcon } from '@/components/Icons';
+import TxStatusBanner from '@/components/TxStatusBanner';
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; icon: React.ReactNode }> = {
   active: { bg: 'bg-blue-50 border-blue-200', text: 'text-[#0a4d94]', icon: <LockIcon size={12} /> },
@@ -71,6 +72,7 @@ export default function PaymentDetailPage() {
 
     resetTxState();
     setActionError(null);
+    setActionTxHash(null);
     try {
       const hash = await releaseEscrow(payment.contractEscrowId);
       setActionTxHash(hash);
@@ -115,6 +117,7 @@ export default function PaymentDetailPage() {
 
     resetTxState();
     setActionError(null);
+    setActionTxHash(null);
     try {
       const hash = await refundEscrow(payment.contractEscrowId);
       setActionTxHash(hash);
@@ -181,22 +184,7 @@ export default function PaymentDetailPage() {
         </div>
       )}
 
-      {actionTxHash && (txState === 'confirming' || txState === 'confirmed') && (
-        <div className={`rounded-lg border p-4 text-xs flex items-center gap-2.5 ${
-          txState === 'confirmed'
-            ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-            : 'border-blue-200 bg-blue-50 text-[#0a4d94]'
-        }`}>
-          {txState === 'confirming' && <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#0a4d94] border-t-transparent shrink-0" />}
-          {txState === 'confirmed' && <CheckCircleIcon size={16} className="shrink-0 text-emerald-600" />}
-          <div>
-            <p className="font-semibold">{txState === 'confirmed' ? 'Transaction confirmed!' : 'Transaction pending...'}</p>
-            <a href={`${EXPLORER_BASE}${actionTxHash}`} target="_blank" rel="noopener noreferrer" className="font-mono mt-0.5 truncate block hover:underline text-[11px]">
-              {actionTxHash}
-            </a>
-          </div>
-        </div>
-      )}
+      <TxStatusBanner txState={txState} txHash={actionTxHash ?? undefined} />
 
       <div className="surface-card rounded-lg p-6 space-y-4">
         <h3 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-3">Payment Parameters</h3>

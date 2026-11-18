@@ -28,7 +28,7 @@ export default function CreatePaymentPage() {
     createScheduledEscrow,
     createRecurringEscrow,
     createNFTConditionalEscrow,
-    txState, txHash, error: txError, resetTxState,
+    txState, txHash, txStep, error: txError, resetTxState,
   } = useEscrowContract();
   const { resolvedAddress, isResolving, resolveError, resolveENS } = useENS();
 
@@ -579,6 +579,7 @@ export default function CreatePaymentPage() {
           description={description}
           txState={txState}
           txHash={txHash}
+          txStep={txStep}
           error={submitError || txError}
           onConfirm={handleConfirmPayment}
           onEdit={() => { setStep('input'); resetTxState(); }}

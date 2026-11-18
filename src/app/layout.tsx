@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Web3Provider } from "@/context/Web3Provider";
+import { ToastProvider } from "@/context/ToastContext";
 import Chatbot from "@/components/chatbot";
 
 export const metadata: Metadata = {
@@ -19,12 +20,14 @@ export default function RootLayout({
     <html lang="en" className="h-full antialiased">
       <body className="min-h-full bg-[#f8fafc] text-slate-900 flex flex-col antialiased font-sans">
         <Web3Provider>
-          <div className="relative z-10 flex flex-col flex-1">
-            {children}
-          </div>
+          <ToastProvider>
+            <div className="relative z-10 flex flex-col flex-1">
+              {children}
+            </div>
 
-          {/* Floating SmartEscrow Chatbot */}
-          <Chatbot />
+            {/* Floating SmartEscrow Chatbot */}
+            <Chatbot />
+          </ToastProvider>
         </Web3Provider>
       </body>
     </html>

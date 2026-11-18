@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useBalance, useReadContract, usePublicClient } from 'wagmi';
 import { parseUnits, formatEther, type Address } from 'viem';
 import { SMART_ESCROW_ABI, ERC20_ABI, TOKEN_ADDRESSES } from '@/lib/contracts';
 import { extractEscrowIdFromLogs } from '@/lib/escrowEvents';
+import { useToast } from '@/context/ToastContext';
 import type { TxState, TokenSymbol } from '@/types/payment';
 
 const ESCROW_ADDRESS = (process.env.NEXT_PUBLIC_SMART_ESCROW_ADDRESS || '') as Address;
@@ -79,10 +80,14 @@ export function useEscrowContract() {
   const { address } = useAccount();
   const [txState, setTxState] = useState<TxState>('idle');
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
+  // Distinguishes the ERC-20 approve transaction from the escrow transaction
+  // so the UI can show which step is currently waiting for the wallet.
+  const [txStep, setTxStep] = useState<'approve' | 'escrow' | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const { writeContractAsync } = useWriteContract();
   const publicClient = usePublicClient();
+  const { toast } = useToast();
 
   const { isLoading: isConfirming, data: receipt } = useWaitForTransactionReceipt({
     hash: txHash,
@@ -101,6 +106,56 @@ export function useEscrowContract() {
     if (receipt && txState === 'confirming') return 'confirmed';
     return txState;
   }, [receipt, txState]);
+
+  // Toast notifications for the two user-visible transaction milestones.
+  const notifiedHash = useRef<`0x${string}` | undefined>(undefined);
+  const notifiedConfirmed = useRef(false);
+
+  useEffect(() => {
+    if (!txHash || txHash === notifiedHash.current) return;
+    notifiedHash.current = txHash;
+    toast({
+      variant: 'pending',
+      title: 'Transaction submitted',
+      description: `${txHash.slice(0, 10)}...${txHash.slice(-8)}`,
+      href: `https://sepolia.basescan.org/tx/${txHash}`,
+    });
+  }, [txHash, toast]);
+
+  useEffect(() => {
+    if (effectiveTxState === 'idle') {
+      notifiedConfirmed.current = false;
+      return;
+    }
+    // The ERC-20 approval receipt is not the final confirmation; wait for the
+    // escrow transaction instead of toasting twice.
+    if (effectiveTxState !== 'confirmed' || txStep === 'approve' || notifiedConfirmed.current) return;
+    notifiedConfirmed.current = true;
+    if (receipt && receipt.status !== 'success') {
+      toast({
+        variant: 'error',
+        title: 'Transaction failed',
+        description: 'The transaction reverted on-chain and no funds moved.',
+      });
+      return;
+    }
+    toast({
+      variant: 'success',
+      title: 'Transaction confirmed',
+      description: 'Your transaction was mined on Base Sepolia.',
+    });
+  }, [effectiveTxState, txStep, receipt, toast]);
+
+  // Surface the failure reason (wallet rejection, estimate failure, etc.) that
+  // the action catches store on the hook.
+  const previousTxState = useRef<TxState>('idle');
+  useEffect(() => {
+    const previous = previousTxState.current;
+    previousTxState.current = txState;
+    if (txState === 'failed' && previous !== 'failed' && error) {
+      toast({ variant: 'error', title: 'Transaction failed', description: error });
+    }
+  }, [txState, error, toast]);
 
   // Wait for a mined receipt and extract the on-chain escrow id from the
   // EscrowCreated event. This must complete before the payment record is
@@ -131,6 +186,7 @@ export function useEscrowContract() {
 
       setTxState('preparing');
       setError(null);
+      setTxStep(null);
 
       const tokenAddress = getTokenAddress(token);
       const decimals = getTokenDecimals(token);
@@ -153,6 +209,7 @@ export function useEscrowContract() {
         } else {
           if (!tokenAddress) throw new Error(`Token ${token} not configured on Base Sepolia`);
 
+          setTxStep('approve');
           setTxState('wallet-pending');
           const approveHash = await writeContractAsync({
             address: tokenAddress,
@@ -163,6 +220,9 @@ export function useEscrowContract() {
           setTxState('confirming');
           setTxHash(approveHash);
           await waitForApproval(approveHash);
+          // Approval is mined: keep the pending banner up for the handoff to
+          // the escrow deposit rather than dropping back to a blank state.
+          setTxStep('escrow');
 
           setTxState('preparing');
           const hash = await writeContractAsync({
@@ -195,6 +255,7 @@ export function useEscrowContract() {
 
       setTxState('preparing');
       setError(null);
+      setTxStep(null);
 
       const tokenAddress = getTokenAddress(token);
       const decimals = getTokenDecimals(token);
@@ -217,6 +278,7 @@ export function useEscrowContract() {
         } else {
           if (!tokenAddress) throw new Error(`Token ${token} not configured on Base Sepolia`);
 
+          setTxStep('approve');
           setTxState('wallet-pending');
           const approveHash = await writeContractAsync({
             address: tokenAddress,
@@ -227,6 +289,9 @@ export function useEscrowContract() {
           setTxState('confirming');
           setTxHash(approveHash);
           await waitForApproval(approveHash);
+          // Approval is mined: keep the pending banner up for the handoff to
+          // the escrow deposit rather than dropping back to a blank state.
+          setTxStep('escrow');
 
           setTxState('preparing');
           const hash = await writeContractAsync({
@@ -258,6 +323,7 @@ export function useEscrowContract() {
 
       setTxState('preparing');
       setError(null);
+      setTxStep(null);
 
       const tokenAddress = getTokenAddress(token);
       const decimals = getTokenDecimals(token);
@@ -280,6 +346,7 @@ export function useEscrowContract() {
         } else {
           if (!tokenAddress) throw new Error(`Token ${token} not configured on Base Sepolia`);
 
+          setTxStep('approve');
           setTxState('wallet-pending');
           const approveHash = await writeContractAsync({
             address: tokenAddress,
@@ -290,6 +357,9 @@ export function useEscrowContract() {
           setTxState('confirming');
           setTxHash(approveHash);
           await waitForApproval(approveHash);
+          // Approval is mined: keep the pending banner up for the handoff to
+          // the escrow deposit rather than dropping back to a blank state.
+          setTxStep('escrow');
 
           setTxState('preparing');
           const hash = await writeContractAsync({
@@ -321,6 +391,7 @@ export function useEscrowContract() {
 
       setTxState('preparing');
       setError(null);
+      setTxStep(null);
 
       const tokenAddress = getTokenAddress(token);
       const decimals = getTokenDecimals(token);
@@ -343,6 +414,7 @@ export function useEscrowContract() {
         } else {
           if (!tokenAddress) throw new Error(`Token ${token} not configured on Base Sepolia`);
 
+          setTxStep('approve');
           setTxState('wallet-pending');
           const approveHash = await writeContractAsync({
             address: tokenAddress,
@@ -353,6 +425,9 @@ export function useEscrowContract() {
           setTxState('confirming');
           setTxHash(approveHash);
           await waitForApproval(approveHash);
+          // Approval is mined: keep the pending banner up for the handoff to
+          // the escrow deposit rather than dropping back to a blank state.
+          setTxStep('escrow');
 
           setTxState('preparing');
           const hash = await writeContractAsync({
@@ -384,6 +459,7 @@ export function useEscrowContract() {
 
       setTxState('preparing');
       setError(null);
+      setTxStep(null);
 
       try {
         const hash = await writeContractAsync({
@@ -412,6 +488,7 @@ export function useEscrowContract() {
 
       setTxState('preparing');
       setError(null);
+      setTxStep(null);
 
       try {
         const hash = await writeContractAsync({
@@ -440,6 +517,7 @@ export function useEscrowContract() {
 
       setTxState('preparing');
       setError(null);
+      setTxStep(null);
 
       try {
         const hash = await writeContractAsync({
@@ -468,6 +546,7 @@ export function useEscrowContract() {
 
       setTxState('preparing');
       setError(null);
+      setTxStep(null);
 
       try {
         const hash = await writeContractAsync({
@@ -496,6 +575,7 @@ export function useEscrowContract() {
 
       setTxState('preparing');
       setError(null);
+      setTxStep(null);
 
       try {
         const hash = await writeContractAsync({
@@ -530,12 +610,14 @@ export function useEscrowContract() {
   const resetTxState = useCallback(() => {
     setTxState('idle');
     setTxHash(undefined);
+    setTxStep(null);
     setError(null);
   }, []);
 
   return {
     txState: effectiveTxState,
     txHash,
+    txStep,
     isConfirming,
     error,
     escrowId,

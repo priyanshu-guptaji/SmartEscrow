@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { useAccount } from 'wagmi';
-import { CheckCircleIcon, LockIcon, AlertCircleIcon, WalletIcon } from './Icons';
+import { LockIcon, AlertCircleIcon, WalletIcon } from './Icons';
+import TxStatusBanner from './TxStatusBanner';
 import type { TxState } from '@/types/payment';
 
 interface PaymentReviewProps {
@@ -15,6 +16,7 @@ interface PaymentReviewProps {
   description: string;
   txState: TxState;
   txHash?: string;
+  txStep?: 'approve' | 'escrow' | null;
   error?: string | null;
   onConfirm: () => void;
   onEdit: () => void;
@@ -33,6 +35,7 @@ export default function PaymentReview({
   description,
   txState,
   txHash,
+  txStep,
   error,
   onConfirm,
   onEdit,
@@ -119,25 +122,12 @@ export default function PaymentReview({
         </div>
       )}
 
-      {txHash && txState === 'confirming' && (
-        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-xs text-[#0a4d94] flex items-center gap-2.5">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#0a4d94] border-t-transparent shrink-0" />
-          <div>
-            <p className="font-semibold">Transaction pending on Base Sepolia...</p>
-            <p className="text-slate-600 font-mono mt-0.5 truncate text-[11px]">{txHash}</p>
-          </div>
-        </div>
-      )}
-
-      {txState === 'confirmed' && (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-xs text-emerald-800 flex items-center gap-2.5">
-          <CheckCircleIcon size={16} className="shrink-0 text-emerald-600" />
-          <div>
-            <p className="font-semibold">Escrow deployed successfully</p>
-            {txHash && <p className="text-emerald-700 font-mono mt-0.5 truncate text-[11px]">{txHash}</p>}
-          </div>
-        </div>
-      )}
+      <TxStatusBanner
+        txState={txState}
+        txHash={txHash}
+        step={txStep}
+        confirmedMessage="Escrow deployed successfully"
+      />
 
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between pt-2 gap-3">
         <button
