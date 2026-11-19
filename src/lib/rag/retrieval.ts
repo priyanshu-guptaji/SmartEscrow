@@ -1,5 +1,6 @@
 
 import { generateEmbedding } from "./embeddings";
+import { RagError } from "./errors";
 import { loadVectorStore } from "./vectorStore";
 
 function cosineSimilarity(
@@ -35,7 +36,10 @@ export async function retrieveRelevantChunks(
     const records = await loadVectorStore();
 
     if (records.length === 0) {
-        throw new Error("Vector store is empty. Index the PDF first.");
+        throw new RagError(
+            "EMPTY_KNOWLEDGE_BASE",
+            "The chatbot knowledge base is empty. Index the SmartEscrow knowledge PDF before asking questions."
+        );
     }
 
     const questionEmbedding = await generateEmbedding(question);

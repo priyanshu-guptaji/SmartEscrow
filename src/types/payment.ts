@@ -47,6 +47,12 @@ export type TxState =
   | 'confirmed'
   | 'failed';
 
+/**
+ * Which transaction in a multi-step escrow deposit is in flight: the ERC-20
+ * approval, the escrow creation itself, or none (single-step flows).
+ */
+export type TxStep = 'approve' | 'escrow' | null;
+
 export interface ContractEscrow {
   id: bigint;
   sender: `0x${string}`;

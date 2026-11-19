@@ -9,6 +9,7 @@ import {
     Bot,
     User,
     Loader2,
+    RotateCcw,
 } from "lucide-react";
 
 interface Message {
@@ -16,10 +17,14 @@ interface Message {
     content: string;
 }
 
+/** An error reported by the chatbot API that is safe to show to the user. */
+class ChatbotApiError extends Error {}
+
 export default function Chatbot() {
     const [isOpen, setIsOpen] = useState(false);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
+    const [failedQuestion, setFailedQuestion] = useState<string | null>(null);
 
     const [messages, setMessages] = useState<Message[]>([
         {
@@ -37,18 +42,23 @@ export default function Chatbot() {
         });
     }, [messages, loading]);
 
-    async function sendMessage() {
-        const question = input.trim();
-
+    async function sendMessage(
+        question: string = input.trim(),
+        isRetry = false
+    ) {
         if (!question || loading) return;
 
-        setMessages((prev) => [
-            ...prev,
-            { role: "user", content: question },
-        ]);
+        if (!isRetry) {
+            setMessages((prev) => [
+                ...prev,
+                { role: "user", content: question },
+            ]);
 
-        setInput("");
+            setInput("");
+        }
+
         setLoading(true);
+        setFailedQuestion(null);
 
         try {
             const response = await fetch("/api/chatbot", {
@@ -62,7 +72,9 @@ export default function Chatbot() {
             const data = await response.json();
 
             if (!response.ok || !data.success) {
-                throw new Error(data.error || "Unable to get an answer.");
+                throw new ChatbotApiError(
+                    data.error || "Unable to get an answer."
+                );
             }
 
             setMessages((prev) => [
@@ -73,6 +85,8 @@ export default function Chatbot() {
                 },
             ]);
         } catch (error) {
+            setFailedQuestion(question);
+
             console.error("Chatbot error:", error);
 
             setMessages((prev) => [
@@ -80,7 +94,9 @@ export default function Chatbot() {
                 {
                     role: "assistant",
                     content:
-                        "Sorry, I couldn't process your question. Please try again.",
+                        error instanceof ChatbotApiError && error.message
+                            ? error.message
+                            : "Sorry, I couldn't process your question. Please try again.",
                 },
             ]);
         } finally {
@@ -142,6 +158,20 @@ export default function Chatbot() {
                                 )}
                             </div>
                         ))}
+
+                        {failedQuestion && !loading && (
+                            <div className="flex justify-start pl-10">
+                                <button
+                                    type="button"
+                                    onClick={() => sendMessage(failedQuestion, true)}
+                                    className="flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-blue-600 shadow-sm transition hover:bg-blue-50"
+                                    aria-label="Retry request"
+                                >
+                                    <RotateCcw size={12} />
+                                    Retry
+                                </button>
+                            </div>
+                        )}
 
                         {loading && (
                             <div className="flex items-center gap-2 text-sm text-gray-500">

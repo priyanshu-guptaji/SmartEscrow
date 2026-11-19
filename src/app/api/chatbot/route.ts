@@ -1,5 +1,6 @@
 
 import { NextRequest, NextResponse } from "next/server";
+import { RagError } from "@/lib/rag/errors";
 import { generateAnswer } from "@/lib/rag/generateAnswer";
 
 export const runtime = "nodejs";
@@ -27,6 +28,19 @@ export async function POST(request: NextRequest) {
             answer,
         });
     } catch (error) {
+        if (error instanceof RagError) {
+            console.error(`Chatbot configuration error (${error.code}):`, error.message);
+
+            return NextResponse.json(
+                {
+                    success: false,
+                    code: error.code,
+                    error: error.message,
+                },
+                { status: 503 }
+            );
+        }
+
         console.error("Chatbot API error:", error);
 
         return NextResponse.json(

@@ -1,14 +1,18 @@
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { RagError } from "./errors";
 import { retrieveRelevantChunks } from "./retrieval";
-
-const apiKey = process.env.GEMINI_API_KEY;
 
 export async function generateAnswer(
     question: string
 ): Promise<string> {
+    const apiKey = process.env.GEMINI_API_KEY;
+
     if (!apiKey) {
-        throw new Error("GEMINI_API_KEY is missing from .env.local");
+        throw new RagError(
+            "MISSING_API_KEY",
+            "The chatbot isn't configured: GEMINI_API_KEY is missing from .env.local."
+        );
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
