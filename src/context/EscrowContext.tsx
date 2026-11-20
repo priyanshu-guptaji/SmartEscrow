@@ -17,7 +17,7 @@ interface EscrowContextType {
   walletConnected: boolean;
   walletAddress: string | null;
   addPayment: (payment: Omit<Payment, 'id' | 'createdAt' | 'status' | 'senderAddress'>) => Promise<Payment>;
-  updatePayment: (id: string, updates: Partial<Pick<Payment, 'status' | 'releaseDate' | 'releasedTxHash' | 'refundedTxHash' | 'txHash' | 'fundedTxHash' | 'blockNumber' | 'contractEscrowId'>>) => Promise<Payment | null>;
+  updatePayment: (id: string, updates: Partial<Pick<Payment, 'status' | 'releaseDate' | 'releasedTxHash' | 'refundedTxHash' | 'txHash' | 'fundedTxHash' | 'blockNumber' | 'contractEscrowId'>>) => Promise<Payment>;
   triggerRelease: (id: string) => Promise<void>;
   cancelPayment: (id: string) => Promise<void>;
   refreshPayments: () => Promise<void>;
@@ -107,26 +107,49 @@ export function EscrowProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isConnected, address]);
 
+  /**
+   * Authenticated API request. Wallet sessions live in server memory and the
+   * signed nonce is single-use, so a request can legitimately return 401 even
+   * though the wallet transaction already succeeded (server restart, expired
+   * session). Rebuild the headers and retry once instead of dropping the write.
+   */
+  const authorizedFetch = useCallback(
+    async (url: string, init: RequestInit = {}): Promise<Response> => {
+      const send = async (): Promise<Response> => {
+        const authHeaders = await getCachedAuthHeaders();
+        if (!authHeaders) {
+          throw new Error('Wallet authentication failed. Please sign the message and try again.');
+        }
+        return fetch(url, {
+          ...init,
+          headers: {
+            ...((init.headers as Record<string, string> | undefined) ?? {}),
+            ...authHeaders,
+          },
+        });
+      };
+
+      let res = await send();
+      if (res.status === 401) {
+        // Force a fresh nonce + signature, then retry the same request.
+        authCacheRef.current = null;
+        res = await send();
+      }
+      return res;
+    },
+    [getCachedAuthHeaders]
+  );
+
   // Fetch the connected wallet's real payments from the database API.
   const refreshPayments = useCallback(async () => {
     setIsLoading(true);
     try {
-      const authHeaders = await getCachedAuthHeaders();
-
-      if (authHeaders) {
-        const res = await fetch('/api/payments', { headers: authHeaders });
-        if (res.ok) {
-          const { data } = await res.json();
-          setPayments(Array.isArray(data) ? data : []);
-        } else if (res.status === 401) {
-          // Auth failed — invalidate the cached headers and show no payments.
-          authCacheRef.current = null;
-          setPayments([]);
-        } else {
-          setPayments([]);
-        }
+      const res = await authorizedFetch('/api/payments');
+      if (res.ok) {
+        const { data } = await res.json();
+        setPayments(Array.isArray(data) ? data : []);
       } else {
-        // Not connected or auth failed — there is nothing real to show.
+        if (res.status === 401) authCacheRef.current = null;
         setPayments([]);
       }
     } catch {
@@ -135,7 +158,7 @@ export function EscrowProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
       setIsInitialized(true);
     }
-  }, [getCachedAuthHeaders]);
+  }, [authorizedFetch]);
 
   useEffect(() => {
     let cancelled = false;
@@ -165,18 +188,9 @@ export function EscrowProvider({ children }: { children: React.ReactNode }) {
     // Persist to API with wallet auth. If this fails the caller must know,
     // otherwise an on-chain escrow could exist with no database record.
     try {
-      const authHeaders = await getCachedAuthHeaders();
-
-      if (!authHeaders) {
-        throw new Error('Wallet authentication failed. Please sign the message and try again.');
-      }
-
-      const res = await fetch('/api/payments', {
+      const res = await authorizedFetch('/api/payments', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeaders,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newPayment),
       });
 
@@ -198,47 +212,25 @@ export function EscrowProvider({ children }: { children: React.ReactNode }) {
   const updatePayment = async (
     id: string,
     updates: Partial<Pick<Payment, 'status' | 'releaseDate' | 'releasedTxHash' | 'refundedTxHash' | 'txHash' | 'fundedTxHash' | 'blockNumber' | 'contractEscrowId'>>
-  ): Promise<Payment | null> => {
-    // Optimistic update
-    let updatedPayment: Payment | null = null;
-    setPayments((prev) =>
-      prev.map((p) => {
-        if (p.id === id) {
-          updatedPayment = { ...p, ...updates };
-          return updatedPayment;
-        }
-        return p;
-      })
-    );
+  ): Promise<Payment> => {
+    // Await the server write and only then update local state. A silent
+    // optimistic update here made failed writes look successful, which is how
+    // an escrow could end up on-chain with no txHash/escrowId in its record.
+    const res = await authorizedFetch('/api/payments', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, ...updates }),
+    });
 
-    try {
-      const authHeaders = await getCachedAuthHeaders();
-
-      if (!authHeaders) {
-        console.error('Cannot update payment: wallet authentication failed');
-        return null;
-      }
-
-      const res = await fetch('/api/payments', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeaders,
-        },
-        body: JSON.stringify({ id, ...updates }),
-      });
-
-      if (!res.ok) {
-        console.error('PATCH failed:', res.status, await res.text());
-        return null;
-      }
-
-      const { data } = await res.json();
-      return data as Payment;
-    } catch (e) {
-      console.error('Failed to update payment:', e);
-      return null;
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || `Failed to update payment (HTTP ${res.status})`);
     }
+
+    const { data } = await res.json();
+    const updated = data as Payment;
+    setPayments((prev) => prev.map((p) => (p.id === id ? { ...p, ...updated } : p)));
+    return updated;
   };
 
   const triggerRelease = async (id: string) => {
@@ -250,19 +242,9 @@ export function EscrowProvider({ children }: { children: React.ReactNode }) {
     );
 
     try {
-      const authHeaders = await getCachedAuthHeaders();
-
-      if (!authHeaders) {
-        console.error('Cannot update payment: wallet authentication failed');
-        return;
-      }
-
-      const res = await fetch('/api/payments', {
+      const res = await authorizedFetch('/api/payments', {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeaders,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, status: 'completed', releaseDate }),
       });
 
@@ -283,19 +265,9 @@ export function EscrowProvider({ children }: { children: React.ReactNode }) {
     );
 
     try {
-      const authHeaders = await getCachedAuthHeaders();
-
-      if (!authHeaders) {
-        console.error('Cannot update payment: wallet authentication failed');
-        return;
-      }
-
-      const res = await fetch('/api/payments', {
+      const res = await authorizedFetch('/api/payments', {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeaders,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, status: 'cancelled', releaseDate }),
       });
 

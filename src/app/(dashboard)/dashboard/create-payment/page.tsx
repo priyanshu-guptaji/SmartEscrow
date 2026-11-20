@@ -198,19 +198,53 @@ export default function CreatePaymentPage() {
         }
       }
 
-      // Step 3: Update payment record with blockchain data and set status to 'active'
-      await updatePayment(newPayment.id, {
-        status: 'active',
+      // Step 3: Persist the on-chain linkage. This write must succeed: without
+      // txHash/contractEscrowId the record cannot be tied back to the escrow,
+      // so release/refund would be impossible. The wallet session can expire
+      // while the transaction is pending, so retry once before failing loudly.
+      const onChainFields = {
+        status: created.escrowId === null ? ('pending' as const) : ('active' as const),
         txHash: created.hash,
         fundedTxHash: created.approveHash,
         contractEscrowId: created.escrowId ?? undefined,
-      });
+      };
+
+      const persist = () => updatePayment(newPayment.id, onChainFields);
+      let saved;
+      try {
+        saved = await persist();
+      } catch (firstError) {
+        console.error('Escrow record update failed, retrying:', firstError);
+        try {
+          saved = await persist();
+        } catch (secondError) {
+          throw new Error(
+            `Escrow transaction ${created.hash} is confirmed on-chain, but payment ${newPayment.id} could not be updated (${secondError instanceof Error ? secondError.message : 'unknown error'}). Do not create this escrow again — reconcile this record first.`
+          );
+        }
+      }
+
+      if (
+        saved.txHash !== created.hash ||
+        (created.escrowId !== null && saved.contractEscrowId !== created.escrowId)
+      ) {
+        throw new Error(
+          `Escrow transaction ${created.hash} is confirmed on-chain, but payment ${newPayment.id} could not be linked to it. Do not create this escrow again — reconcile this record first.`
+        );
+      }
+
+      if (created.escrowId === null) {
+        throw new Error(
+          `Escrow transaction ${created.hash} is confirmed on-chain, but its escrow ID could not be read from the receipt. The deposit hash was saved on payment ${newPayment.id}.`
+        );
+      }
 
       setSuccessMsg('Escrow smart contract deployed successfully!');
       setTimeout(() => router.push('/dashboard/payments'), 2000);
     } catch (err: unknown) {
       // Transaction errors are already surfaced by useEscrowContract. This
-      // covers persistence failures that happen before the wallet is called.
+      // covers persistence failures, including a wallet write that failed
+      // after the on-chain escrow was already created.
       if (!txError) {
         setSubmitError(err instanceof Error ? err.message : 'Failed to create escrow payment.');
       }

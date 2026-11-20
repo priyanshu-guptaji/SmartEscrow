@@ -22,7 +22,11 @@
     "deploy": "hardhat run scripts/deploy.ts --network baseSepolia",
     "listener": "npx tsx scripts/event-listener.ts",
     "scheduler": "npx tsx scripts/scheduler.ts",
-    "scheduler:dry": "npx tsx scripts/scheduler.ts --dry-run"
+    "scheduler:dry": "npx tsx scripts/scheduler.ts --dry-run",
+    "reconcile": "npx tsx scripts/reconcile.ts",
+    "reconcile:dry": "npx tsx scripts/reconcile.ts --dry-run",
+    "seed": "npx tsx scripts/seed-mongo.ts",
+    "seed:dry": "npx tsx scripts/seed-mongo.ts --dry-run"
   },
   "dependencies": {
     "@coinbase/wallet-sdk": "^4.4.0",

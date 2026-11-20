@@ -71,8 +71,12 @@ function initializeLocalDB() {
   }
 }
 
-// MongoDB connection helper
-async function connectToMongo(): Promise<boolean> {
+// MongoDB connection helper.
+// `requireMongo` is opt-in: when `MONGODB_URI` is set but the connection fails,
+// the caller gets an error instead of silently writing to the JSON fallback.
+// The reconciliation script uses it so a production run cannot "succeed" by
+// updating the wrong store; the web app keeps the tolerant default.
+async function connectToMongo(requireMongo = false): Promise<boolean> {
   const uri = getMongoUri();
   if (!uri) return false;
   if (mongoose.connection.readyState === 1) return true;
@@ -81,14 +85,23 @@ async function connectToMongo(): Promise<boolean> {
     console.log("Connected to MongoDB successfully.");
     return true;
   } catch (error) {
+    if (requireMongo) {
+      const detail = error instanceof Error ? error.message.split("\n")[0] : String(error);
+      throw new Error(
+        "MONGODB_URI is configured but MongoDB is unreachable. Refusing to use the local JSON fallback. " +
+          `(${detail})`
+      );
+    }
     console.error("MongoDB connection failed, using local database fallback:", error);
     return false;
   }
 }
 
 // Returns a connected model, or null when the JSON fallback should be used.
-async function getConnectedModel(): Promise<mongoose.Model<Payment> | null> {
-  if (!(await connectToMongo())) return null;
+async function getConnectedModel(
+  options: { requireMongo?: boolean } = {}
+): Promise<mongoose.Model<Payment> | null> {
+  if (!(await connectToMongo(options.requireMongo))) return null;
   return getPaymentModel();
 }
 
@@ -171,8 +184,10 @@ export async function savePayment(payment: Payment): Promise<Payment> {
   }
 }
 
-export async function getPayments(): Promise<Payment[]> {
-  const model = await getConnectedModel();
+export async function getPayments(
+  options: { requireMongo?: boolean } = {}
+): Promise<Payment[]> {
+  const model = await getConnectedModel(options);
 
   if (model) {
     const docs = await model.find().sort({ createdAt: -1 }).lean();
@@ -223,9 +238,10 @@ export async function updatePaymentStatus(
 
 export async function updatePayment(
   id: string,
-  updates: PaymentUpdates
+  updates: PaymentUpdates,
+  options: { requireMongo?: boolean } = {}
 ): Promise<Payment | null> {
-  const model = await getConnectedModel();
+  const model = await getConnectedModel(options);
 
   if (model) {
     const updated = await model.findOneAndUpdate(

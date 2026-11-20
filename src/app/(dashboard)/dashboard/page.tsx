@@ -1,16 +1,41 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useAccount, useBalance } from 'wagmi';
+import { baseSepolia } from 'wagmi/chains';
+import { formatUnits, type Address } from 'viem';
 import { useEscrow } from '@/context/EscrowContext';
 import PaymentCard from '@/components/PaymentCard';
 import WalletWidget from '@/components/WalletWidget';
 import Link from 'next/link';
 import { PlusIcon, LockIcon, CheckCircleIcon, ArrowUpRightIcon, WalletIcon, SparklesIcon } from '@/components/Icons';
 
+type BalanceData = { value: bigint; decimals: number; symbol: string };
+
+function formatBalance(data: BalanceData | undefined): string {
+  if (!data) return '—';
+  const amount = Number(formatUnits(data.value, data.decimals));
+  return `${amount.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${data.symbol}`;
+}
+
 export default function DashboardPage() {
   const { displayPayments, metrics, walletConnected, showSampleData } = useEscrow();
+  const { address } = useAccount();
   const [filter, setFilter] = useState<'all' | 'active' | 'completed' | 'cancelled'>('all');
   const contractAddress = process.env.NEXT_PUBLIC_SMART_ESCROW_ADDRESS;
+
+  // Live Base Sepolia balances: the connected wallet's spendable ETH and the
+  // ETH actually held by the escrow contract for all escrows.
+  const { data: walletBalance } = useBalance({
+    address,
+    chainId: baseSepolia.id,
+    query: { enabled: Boolean(address) },
+  });
+  const { data: escrowBalance } = useBalance({
+    address: contractAddress ? (contractAddress as Address) : undefined,
+    chainId: baseSepolia.id,
+    query: { enabled: Boolean(contractAddress) },
+  });
 
   // Filter payments
   const displayedPayments = displayPayments.filter((p) => {
@@ -47,20 +72,31 @@ export default function DashboardPage() {
 
       {/* Metrics Row (4 Cards) */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Metric 1: Total Payments Volume */}
+        {/* Metric 1: Live on-chain balances */}
         <div className="surface-card rounded-lg p-5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Total Escrow Volume</span>
+            <span className="text-xs font-semibold text-slate-500">On-Chain Balances</span>
             <div className="flex h-8 w-8 items-center justify-center rounded bg-slate-100 text-[#0a4d94]">
-              <span className="text-sm font-bold">$</span>
+              <WalletIcon size={16} />
             </div>
           </div>
-          <div className="mt-3">
-            <h3 className="text-2xl font-bold text-slate-900 font-mono">
-              ${metrics.totalPaymentsVolume.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </h3>
-            <p className="text-xs text-slate-500 font-medium mt-1">Active + Completed deposits</p>
+          <div className="mt-3 space-y-1.5">
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-xs text-slate-500">Wallet</span>
+              <span className="text-sm font-bold text-slate-900 font-mono truncate">
+                {walletConnected ? formatBalance(walletBalance) : 'Not connected'}
+              </span>
+            </div>
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-xs text-slate-500">Escrow contract</span>
+              <span className="text-sm font-bold text-slate-900 font-mono truncate">
+                {formatBalance(escrowBalance)}
+              </span>
+            </div>
           </div>
+          <p className="text-xs text-slate-500 font-medium mt-2">
+            Live from Base Sepolia · funds held by the contract
+          </p>
         </div>
 
         {/* Metric 2: Active Escrows */}
